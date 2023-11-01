@@ -14,8 +14,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     "Player 1",
     "Player 2",
     "Player 3",
-    "Player 4",
-    "Player 5",
   ];
 
   @override
@@ -81,7 +79,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               // Top Players This Month leaderboard
               const SizedBox(height: 22.0),
               const Text(
-                "Top 5 Players This Month",
+                "Top 3 Players This Week",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,
@@ -92,7 +90,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 children: topPlayersThisMonth.asMap().entries.map((entry) {
                   final index = entry.key;
                   final playerName = entry.value;
-
                   return Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(

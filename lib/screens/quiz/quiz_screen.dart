@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/quiz_data_class.dart';
+import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/tabs/all_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/easy_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/hard_quiz_tab.dart';
@@ -41,7 +42,13 @@ class _QuizScreenState extends State<QuizScreen> {
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.chart_bar_alt_fill),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const CreateProfileScreen()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(CupertinoIcons.search),

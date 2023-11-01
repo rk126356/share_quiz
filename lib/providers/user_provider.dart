@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider extends ChangeNotifier {
   var _userData = UserModel(
-      // uid: 'HpWp3pyzgNWzvR2deGOmKPlBFKp2',
+      // uid: 'ykMwAZImGHd54fzgXR24iLDtmde2',
       // avatarUrl:
       //     'https://lh3.googleusercontent.com/a/ACg8ocIMy4Ub0gQghVTQOBgRvZzg8fgOjYRilIIv3dIzSZpFKw=s96-c',
       // name: 'SuperSuper Gaming',
@@ -34,7 +34,18 @@ class UserProvider extends ChangeNotifier {
   }
 
   setUserData(UserModel user) {
-    _userData = user;
+    _userData = UserModel(
+      name: user.name ?? _userData.name,
+      email: user.email ?? _userData.email,
+      avatarUrl: user.avatarUrl ?? _userData.avatarUrl,
+      uid: user.uid ?? _userData.uid,
+      username: user.username ?? _userData.username,
+      bio: user.bio ?? _userData.bio,
+      gender: user.gender ?? _userData.gender,
+      phoneNumber: user.phoneNumber ?? _userData.phoneNumber,
+      dob: user.dob ?? _userData.dob,
+      language: user.language ?? _userData.language,
+    );
   }
 
   Future<void> _initializeDataFromPrefs() async {

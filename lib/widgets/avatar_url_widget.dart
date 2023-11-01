@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 Widget avatarTile(String title, String url, String name, onTap) {
@@ -27,5 +28,7 @@ Widget avatarTile(String title, String url, String name, onTap) {
         fontWeight: FontWeight.bold,
       ),
     ),
+    trailing:
+        IconButton(onPressed: onTap, icon: const Icon(Icons.arrow_forward_ios)),
   );
 }

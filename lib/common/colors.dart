@@ -1,8 +1,10 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
+
 class AppColors {
   static const primaryColor =
-      Color(0xFF007AFF); // Replace with your primary color
+      CupertinoColors.activeBlue; // Replace with your primary color
   static const secondaryColor =
       Color(0xFF00C3FF); // Replace with your secondary color
   static const backgroundColor =

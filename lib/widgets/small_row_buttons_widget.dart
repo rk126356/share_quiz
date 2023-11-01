@@ -19,7 +19,7 @@ class SmallRowButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: CupertinoColors.activeBlue,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(

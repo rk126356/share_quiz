@@ -4,19 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 
-class QuizCardItems extends StatefulWidget {
+class MyQuizCardItems extends StatefulWidget {
   final CreateQuizDataModel quizData;
+  final dynamic onDelete;
 
-  const QuizCardItems({
+  const MyQuizCardItems({
     super.key,
     required this.quizData,
+    required this.onDelete,
   });
 
   @override
-  State<QuizCardItems> createState() => _QuizCardItemsState();
+  State<MyQuizCardItems> createState() => _MyQuizCardItemsState();
 }
 
-class _QuizCardItemsState extends State<QuizCardItems> {
+class _MyQuizCardItemsState extends State<MyQuizCardItems> {
   updateViews() async {
     final firestore = FirebaseFirestore.instance;
 
@@ -75,10 +77,8 @@ class _QuizCardItemsState extends State<QuizCardItems> {
               ),
             ),
             trailing: IconButton(
-                onPressed: () {
-                  print("SHARE");
-                },
-                icon: const Icon(Icons.share)),
+                onPressed: widget.onDelete,
+                icon: const Icon(CupertinoIcons.delete)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

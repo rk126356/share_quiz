@@ -5,17 +5,16 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
 
-class CreateScreen extends StatefulWidget {
-  const CreateScreen({Key? key}) : super(key: key);
+class QuizAboutMeTemplate extends StatefulWidget {
+  const QuizAboutMeTemplate({Key? key}) : super(key: key);
 
   @override
-  State<CreateScreen> createState() => _CreateScreenState();
+  State<QuizAboutMeTemplate> createState() => _QuizAboutMeTemplateState();
 }
 
-class _CreateScreenState extends State<CreateScreen> {
+class _QuizAboutMeTemplateState extends State<QuizAboutMeTemplate> {
   CreateQuizDataModel quizData = CreateQuizDataModel();
   TextEditingController questionController = TextEditingController();
   List<TextEditingController> choiceControllers =
@@ -120,35 +119,7 @@ class _CreateScreenState extends State<CreateScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   if (questionController.text.isNotEmpty &&
-                      selectedCorrectAns != null &&
-                      choiceControllers[0].text.isNotEmpty &&
-                      choiceControllers[1].text.isNotEmpty) {
-                    for (int i = 0; i < choiceCount; i++) {
-                      if (choiceControllers[i].text.isEmpty) {
-                        showDialog(
-                          context:
-                              context, // Make sure to have access to the context in your method.
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Error"),
-                              content:
-                                  const Text("Please fill in the choices."),
-                              actions: <Widget>[
-                                ElevatedButton(
-                                  child: const Text("OK"),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                        return;
-                      }
-                    }
-
+                      selectedCorrectAns != null) {
                     previewQuestions.add(Quizzes(
                       questionTitle: questionController.text,
                       choices: choiceControllers
@@ -164,26 +135,6 @@ class _CreateScreenState extends State<CreateScreen> {
                     }
                     selectedCorrectAns = null;
                     Navigator.of(context).pop();
-                  } else {
-                    showDialog(
-                      context:
-                          context, // Make sure to have access to the context in your method.
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("Error"),
-                          content: const Text(
-                              "Please fill in the Question, add at least 2 choices and select the correct answer."),
-                          actions: <Widget>[
-                            ElevatedButton(
-                              child: const Text("OK"),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Close the dialog
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
                   }
 
                   setState(() {});
@@ -200,6 +151,15 @@ class _CreateScreenState extends State<CreateScreen> {
       },
     );
   }
+
+  // void _showErrorSnackBar(String message) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(message),
+  //       duration: Duration(seconds: 3), // Adjust the duration as needed
+  //     ),
+  //   );
+  // }
 
   // Function to show the edit question dialog
   Future<void> _showEditQuestionDialog(int index) async {
@@ -283,70 +243,24 @@ class _CreateScreenState extends State<CreateScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   if (questionController.text.isNotEmpty &&
-                      selectedCorrectAns != null &&
-                      choiceControllers[0].text.isNotEmpty &&
-                      choiceControllers[1].text.isNotEmpty) {
-                    for (int i = 0; i < choiceCount; i++) {
-                      if (choiceControllers[i].text.isEmpty) {
-                        showDialog(
-                          context:
-                              context, // Make sure to have access to the context in your method.
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Error"),
-                              content:
-                                  const Text("Please fill in the choices."),
-                              actions: <Widget>[
-                                ElevatedButton(
-                                  child: const Text("OK"),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                        return;
-                      }
-                    }
-
-                    previewQuestions.add(Quizzes(
+                      selectedCorrectAns != null) {
+                    Quizzes editedQuestion = Quizzes(
                       questionTitle: questionController.text,
                       choices: choiceControllers
                           .map((controller) => controller.text)
                           .toList()
                           .sublist(0, choiceCount),
                       correctAns: selectedCorrectAns,
-                    ));
+                    );
 
+                    previewQuestions[selectedQuestionIndex!] = editedQuestion;
                     questionController.clear();
                     for (var controller in choiceControllers) {
                       controller.clear();
                     }
                     selectedCorrectAns = null;
+                    selectedQuestionIndex = null;
                     Navigator.of(context).pop();
-                  } else {
-                    showDialog(
-                      context:
-                          context, // Make sure to have access to the context in your method.
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("Error"),
-                          content: const Text(
-                              "Please fill in the Question, add at least 2 choices and select the correct answer."),
-                          actions: <Widget>[
-                            ElevatedButton(
-                              child: const Text("OK"),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Close the dialog
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
                   }
 
                   setState(() {});
@@ -406,27 +320,98 @@ class _CreateScreenState extends State<CreateScreen> {
       setState(() {
         _isLoading = false;
       });
-    } else {
-      showDialog(
-        context:
-            context, // Make sure to have access to the context in your method.
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Error"),
-            content: const Text(
-                "Please fill in all required fields and add at least 2 questions."),
-            actions: <Widget>[
-              ElevatedButton(
-                child: const Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-              ),
-            ],
-          );
-        },
-      );
     }
+  }
+
+  TextEditingController quizTitle = TextEditingController();
+  TextEditingController quizDescription = TextEditingController();
+
+  void initState() {
+    super.initState();
+    List<Quizzes> _westBengalQuestions = [
+      Quizzes(
+        questionTitle: "What is the capital of West Bengal?",
+        choices: ["Kolkata", "Howrah", "Siliguri", "Durgapur"],
+        correctAns: '0',
+      ),
+      Quizzes(
+        questionTitle:
+            "Which river flows through Kolkata, the largest city in West Bengal?",
+        choices: ["Ganges", "Yamuna", "Brahmaputra", "Hooghly"],
+        correctAns: '3',
+      ),
+      Quizzes(
+        questionTitle:
+            "What is the famous sweet made from cottage cheese in West Bengal?",
+        choices: ["Rasgulla", "Gulab Jamun", "Jalebi", "Barfi"],
+        correctAns: '0',
+      ),
+      Quizzes(
+        questionTitle:
+            "Which festival is celebrated with grand processions and idol immersions in West Bengal?",
+        choices: ["Diwali", "Holi", "Durga Puja", "Eid"],
+        correctAns: '2',
+      ),
+      Quizzes(
+        questionTitle:
+            "What is the national park in West Bengal known for its Royal Bengal tigers?",
+        choices: [
+          "Sundarbans National Park",
+          "Buxa Tiger Reserve",
+          "Jaldapara National Park",
+          "Neora Valley National Park"
+        ],
+        correctAns: '0',
+      ),
+      Quizzes(
+        questionTitle:
+            "Which famous poet and Nobel laureate was from West Bengal?",
+        choices: [
+          "Rabindranath Tagore",
+          "Kazi Nazrul Islam",
+          "Sukumar Ray",
+          "Bankim Chandra Chattopadhyay"
+        ],
+        correctAns: '0',
+      ),
+      Quizzes(
+        questionTitle: "What is the traditional folk dance of West Bengal?",
+        choices: ["Bharatanatyam", "Kuchipudi", "Kathak", "Baul"],
+        correctAns: '3',
+      ),
+      Quizzes(
+        questionTitle:
+            "Which is the famous cricket stadium in Kolkata, often called the 'Eden Gardens'?",
+        choices: [
+          "M. Chinnaswamy Stadium",
+          "Wankhede Stadium",
+          "Rajiv Gandhi International Cricket Stadium",
+          "Eden Gardens"
+        ],
+        correctAns: '3',
+      ),
+      Quizzes(
+        questionTitle: "What is the official language of West Bengal?",
+        choices: ["Hindi", "Bengali", "English", "Oriya"],
+        correctAns: '1',
+      ),
+      Quizzes(
+        questionTitle:
+            "Which famous religious site in West Bengal is known for its annual chariot festival?",
+        choices: [
+          "Belur Math",
+          "Kali Temple",
+          "Dakshineswar Temple",
+          "ISKCON Mayapur"
+        ],
+        correctAns: '2',
+      ),
+    ];
+
+    quizTitle.text = "West Bengal Knowledge Quiz";
+    quizDescription.text =
+        "Test your knowledge about the Indian state of West Bengal with this easy quiz!";
+    previewQuestions = _westBengalQuestions;
   }
 
   @override
@@ -513,6 +498,7 @@ class _CreateScreenState extends State<CreateScreen> {
           child: Column(
             children: [
               TextField(
+                controller: quizTitle,
                 maxLength: 70,
                 decoration: const InputDecoration(
                   icon: Icon(
@@ -528,6 +514,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 },
               ),
               TextField(
+                controller: quizDescription,
                 maxLines: null,
                 maxLength: 280,
                 decoration: const InputDecoration(
@@ -555,12 +542,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 ),
                 onChanged: (text) {
                   setState(() {
-                    final tags = text.toLowerCase().split(',');
-                    for (int i = 0; i < tags.length; i++) {
-                      if (!tags[i].trim().startsWith('#')) {
-                        tags[i] = '#${tags[i].trim()}';
-                      }
-                    }
+                    final tags = text.split(',');
                     quizData.categories = tags;
                   });
                 },

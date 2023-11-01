@@ -1,193 +1,284 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/widgets/custom_listtile_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_quiz/screens/profile/create_profile_screen.dart';
+import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-
     return Scaffold(
-      body: Column(
-        children: [
-          const Expanded(flex: 1, child: _TopPortion()),
-          Expanded(
-            flex: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Text(
-                    data.userData.name!,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "I knows about many things, but I prefer not saying those things to anyone.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 5),
-                  const _ProfileInfoRow()
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: SingleSection(
-              title: "My Profile",
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
               children: [
-                const CustomListTile(
-                    title: "My Quizzes", icon: CupertinoIcons.question_square),
-                const CustomListTile(
-                    title: "Quizzes Taken",
-                    icon: CupertinoIcons.checkmark_square),
-                const CustomListTile(
-                    title: "My Ranking", icon: CupertinoIcons.chart_bar_square),
-                const CustomListTile(
-                    title: "Bookmarks", icon: CupertinoIcons.bookmark),
-                const CustomListTile(
-                    title: "Settings", icon: CupertinoIcons.settings),
-                ElevatedButton(
-                    onPressed: () async {
-                      await GoogleSignIn().signOut();
-                      FirebaseAuth.instance.signOut();
-                      SharedPreferences preferences =
-                          await SharedPreferences.getInstance();
-                      await preferences.clear();
-                    },
-                    child: const Text("Logout"))
+                _HeaderBackground(),
+                _ProfileAvatar(),
               ],
             ),
-          ),
-        ],
+            _QuickLinks(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ProfileInfoRow extends StatelessWidget {
-  const _ProfileInfoRow({Key? key}) : super(key: key);
-
-  final List<ProfileInfoItem> _items = const [
-    ProfileInfoItem("Quizzes", 20),
-    ProfileInfoItem("Followers", 120),
-    ProfileInfoItem("Following", 200),
-  ];
-
+class _HeaderBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80,
-      constraints: const BoxConstraints(maxWidth: 400),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: _items
-            .map((item) => Expanded(
-                    child: Row(
-                  children: [
-                    if (_items.indexOf(item) != 0) const VerticalDivider(),
-                    Expanded(child: _singleItem(context, item)),
-                  ],
-                )))
-            .toList(),
+      height: 360,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue, Colors.indigo],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
       ),
     );
   }
-
-  Widget _singleItem(BuildContext context, ProfileInfoItem item) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              item.value.toString(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ),
-          Text(
-            item.title,
-            style: Theme.of(context).textTheme.caption,
-          )
-        ],
-      );
 }
 
-class ProfileInfoItem {
-  final String title;
-  final int value;
-  const ProfileInfoItem(this.title, this.value);
-}
-
-class _TopPortion extends StatelessWidget {
-  const _TopPortion({Key? key}) : super(key: key);
-
+class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 50),
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [Color(0xff0043ba), Color(0xff006df1)]),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50),
-              )),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: SizedBox(
-            width: 150,
-            height: 150,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: NetworkImage(data.userData.avatarUrl!)),
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 50,
+          ),
+          Stack(
+            alignment: Alignment
+                .bottomRight, // Align the edit icon to the bottom right
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    child: Container(
-                      margin: const EdgeInsets.all(8.0),
-                      decoration: const BoxDecoration(
-                          color: Colors.green, shape: BoxShape.circle),
-                    ),
-                  ),
+                child: CircleAvatar(
+                  radius: 56,
+                  backgroundImage: NetworkImage(data.userData.avatarUrl!),
                 ),
-              ],
+              ),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor:
+                    Colors.blue, // Background color of the edit icon
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.edit,
+                    color: Colors.white, // Color of the edit icon
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreateProfileScreen(
+                                isEdit: true,
+                              )),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          _ProfileInfo(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var data = Provider.of<UserProvider>(context, listen: false);
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Text(
+            data.userData.name!,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
+          Text(
+            '@${data.userData.username}' ?? '@supersuper785',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            data.userData.bio ??
+                'Front-end Developer with a passion for coding and design. Love creating beautiful.',
+            style: const TextStyle(fontSize: 18, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          _ProfileStats(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileStats extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _StatItem("Quizzes", "20"),
+        _StatItem("Followers", "120"),
+        _StatItem("Following", "200"),
+      ],
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _StatItem(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, color: Colors.white70),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickLinks extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          leading:
+              const Icon(CupertinoIcons.pencil, color: AppColors.primaryColor),
+          title: const Text("Edit Profile"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const CreateProfileScreen(
+                        isEdit: true,
+                      )),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.question,
+              color: AppColors.primaryColor),
+          title: const Text("My Quizzes"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.arrow_2_circlepath,
+              color: AppColors.primaryColor),
+          title: const Text("My History"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const CreateProfileScreen(
+                        isEdit: true,
+                      )),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.chart_bar,
+              color: AppColors.primaryColor),
+          title: const Text("My Ranking"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            // Handle navigation to the user's ranking.
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.bookmark,
+              color: AppColors.primaryColor),
+          title: const Text("My Bookmarks"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            // Handle navigation to the user's ranking.
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.settings,
+              color: AppColors.primaryColor),
+          title: const Text("Settings"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            // Handle navigation to the settings screen.
+          },
+        ),
+        const SizedBox(
+          height: 30,
         )
       ],
     );

@@ -1,11 +1,13 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lottie/lottie.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/controllers/updateShare.dart';
+import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/screens/quiz/play_quiz_screen.dart';
 import 'package:share_quiz/widgets/avatar_url_widget.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -35,6 +37,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   bool _isLiked = false;
   bool _isDisliked = false;
   bool _isLoading = false;
+  bool _shouldPlay = false;
 
   late DocumentSnapshot<Map<String, dynamic>> _quizCollection;
 
@@ -44,7 +47,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     final userCollection = await firestore.collection('users').get();
 
     if (widget.creatorUserID != null) {
-      print(widget.quizID);
       final quizCollection = await firestore
           .collection('users/${widget.creatorUserID}/myQuizzes')
           .doc(widget.quizID)
@@ -54,7 +56,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     } else {
       for (final userDoc in userCollection.docs) {
         final userId = userDoc.id;
-        print(userId);
         final quizCollection = await firestore
             .collection('users/$userId/myQuizzes')
             .doc(widget.quizID)
@@ -95,6 +96,9 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         creatorName: quizDataMap?['creatorName'],
         creatorImage: quizDataMap?['creatorImage'],
         shares: quizDataMap?['shares'],
+        timer: quizDataMap?['timer'],
+        visibility: quizDataMap?['visibility'],
+        creatorUserID: quizDataMap?['creatorUserID'],
         quizzes: quizzesList.map((quizMap) {
           return Quizzes(
             questionTitle: quizMap['questionTitle'],
@@ -103,8 +107,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           );
         }).toList(),
       );
-
-      if (widget.isQuickPlay != null) {
+      if (_shouldPlay) {
         // ignore: use_build_context_synchronously
         Navigator.push(
           context,
@@ -115,11 +118,14 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
             ),
           ),
         );
+        _shouldPlay = false;
       }
 
       return data;
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
     }
 
     return CreateQuizDataModel();
@@ -187,7 +193,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
 
       if (_isLiked) {
         if (currentLikes > 0) {
-          await _quizCollection.reference.update({'likes': currentLikes - 1});
+          await _quizCollection.reference
+              .update({'likes': FieldValue.increment(-1)});
         }
 
         for (final doc in likedQuizSnapshot.docs) {
@@ -198,10 +205,11 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           _isLiked = false;
         });
       } else {
-        await _quizCollection.reference.update({'likes': currentLikes + 1});
+        await _quizCollection.reference
+            .update({'likes': FieldValue.increment(1)});
         if (currentDisLikes > 0) {
           await _quizCollection.reference
-              .update({'disLikes': currentDisLikes - 1});
+              .update({'disLikes': FieldValue.increment(-1)});
         }
 
         await likedQuizRef.add({
@@ -263,7 +271,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         });
       } else {
         await _quizCollection.reference
-            .update({'disLikes': currentDisLikes + 1});
+            .update({'disLikes': FieldValue.increment(1)});
 
         await dislikedQuizRef.add({
           'quizID': quizID,
@@ -271,7 +279,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         });
         if (_isLiked) {
           if (currentLikes > 0) {
-            await _quizCollection.reference.update({'likes': currentLikes - 1});
+            await _quizCollection.reference
+                .update({'likes': FieldValue.increment(-1)});
           }
           for (final doc in likedQuizSnapshot.docs) {
             await doc.reference.delete();
@@ -292,6 +301,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   @override
   void initState() {
     super.initState();
+    _shouldPlay = widget.isQuickPlay != null;
     quizData = fetchQuizDetails();
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
@@ -303,8 +313,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-              onPressed: () {},
-              icon: const Icon(CupertinoIcons.chart_bar_square)),
+              onPressed: () {}, icon: const Icon(CupertinoIcons.bookmark)),
           IconButton(
               onPressed: () {
                 quizData = fetchQuizDetails();
@@ -314,7 +323,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
               icon: const Icon(CupertinoIcons.refresh))
         ],
         title: const Text('Quiz Details'),
-        backgroundColor: Colors.blue, // Customize the app bar color
+        backgroundColor:
+            CupertinoColors.activeBlue, // Customize the app bar color
       ),
       body: FutureBuilder<CreateQuizDataModel>(
         future: quizData,
@@ -340,19 +350,22 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ListTile(
-                        title: Text(
-                          quizData?.quizTitle ?? 'No Title',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5.0),
+                        child: ListTile(
+                          title: Text(
+                            quizData?.quizTitle ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        subtitle: Text(
-                          quizData?.quizDescription ?? 'No Description',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
+                          subtitle: Text(
+                            quizData?.quizDescription ?? 'No Description',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                       ),
@@ -438,11 +451,18 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                       ),
                       SmallRowButton(
                         onTap: () {
-                          updateShare(widget.quizID);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => InsideQuizScoreBoardScreen(
+                                quizData: quizData!,
+                              ),
+                            ),
+                          );
                         },
-                        title: 'Share',
+                        title: 'Scoreboard',
                         icon: const Icon(
-                          CupertinoIcons.share,
+                          CupertinoIcons.chart_bar_square,
                           color: Colors.white,
                         ),
                       ),
@@ -450,10 +470,12 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                         width: 10,
                       ),
                       SmallRowButton(
-                        onTap: () {},
-                        title: 'Scoreboard',
+                        onTap: () {
+                          updateShare(quizData!.quizID, quizData.creatorUserID);
+                        },
+                        title: 'Share',
                         icon: const Icon(
-                          CupertinoIcons.chart_bar_square,
+                          CupertinoIcons.share,
                           color: Colors.white,
                         ),
                       ),
@@ -496,7 +518,16 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                         print("TAP");
                       }),
                       avatarTile('Top Scorer', quizData.topScorerImage!,
-                          quizData.topScorerName.toString(), () {})
+                          quizData.topScorerName.toString(), () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InsideQuizScoreBoardScreen(
+                              quizData: quizData,
+                            ),
+                          ),
+                        );
+                      })
                     ],
                   ),
                 ),
@@ -544,7 +575,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: CupertinoColors.activeBlue,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 32, vertical: 16),
                   ),

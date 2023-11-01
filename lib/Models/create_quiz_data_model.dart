@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class CreateQuizDataModel {
   String? quizTitle;
   String? creatorName;
+  String? creatorUsername;
   String? creatorUserID;
   String? creatorImage;
   String? quizDescription;
@@ -18,11 +19,15 @@ class CreateQuizDataModel {
   int? shares;
   String? topScorerName;
   String? topScorerImage;
-  String? createdAt;
+  Timestamp? createdAt;
+  String? visibility;
+  int? timer;
+  String? difficulty;
 
   CreateQuizDataModel({
     this.quizTitle,
     this.creatorName,
+    this.creatorUsername,
     this.creatorUserID,
     this.creatorImage,
     this.quizDescription,
@@ -39,11 +44,15 @@ class CreateQuizDataModel {
     this.topScorerName,
     this.topScorerImage,
     this.createdAt,
+    this.visibility,
+    this.timer,
+    this.difficulty,
   });
 
   CreateQuizDataModel.fromJson(Map<String, dynamic> json) {
     quizTitle = json['quizTitle'];
     creatorName = json['creatorName'];
+    creatorUsername = json['creatorUsername'];
     createdAt = json['createdAt'];
     creatorUserID = json['creatorUserID'];
     creatorImage = json['creatorImage'];
@@ -65,12 +74,16 @@ class CreateQuizDataModel {
     wins = json['wins'];
     topScorerName = json['topScorerName'];
     topScorerImage = json['topScorerImage'];
+    visibility = json['visibility'];
+    timer = json['timer'];
+    difficulty = json['difficulty'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['quizTitle'] = quizTitle;
     data['creatorName'] = creatorName;
+    data['creatorUsername'] = creatorUsername;
     data['creatorUserID'] = creatorUserID;
     data['createdAt'] = createdAt;
     data['creatorImage'] = creatorImage;
@@ -89,6 +102,9 @@ class CreateQuizDataModel {
     data['shares'] = shares;
     data['topScorerName'] = topScorerName;
     data['topScorerImage'] = topScorerImage;
+    data['visibility'] = visibility;
+    data['timer'] = timer;
+    data['difficulty'] = difficulty;
 
     return data;
   }

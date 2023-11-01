@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key});
@@ -60,10 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _user = user!;
 
         data.setUserData(UserModel(
-            uid: _user.uid,
-            email: _user.email,
-            name: _user.displayName,
-            avatarUrl: _user.photoURL));
+          uid: _user.uid,
+          email: _user.email,
+          name: _user.displayName,
+        ));
 
         // Check if the user data already exists in Firestore
         final userDoc =
@@ -73,25 +74,28 @@ class _LoginScreenState extends State<LoginScreen> {
         if (userDocSnapshot.exists) {
           // If the document exists, update its data
           await userDoc.update({
-            'displayName': user.displayName,
-            'email': user.email,
-            'uid': user.uid,
-            'avatarUrl': user.photoURL,
+            // 'displayName': user.displayName,
+            // 'email': user.email,
+            // 'uid': user.uid,
+            // 'avatarUrl': user.photoURL,
           });
         } else {
-          // If the document doesn't exist, create it
+          var uuid = const Uuid();
+          var randomUuid = uuid.v4();
+          var username = randomUuid.substring(0, 8);
           await userDoc.set({
             'displayName': user.displayName,
             'email': user.email,
             'uid': user.uid,
             'avatarUrl': user.photoURL,
             'plan': 'free',
+            'username': username,
           });
         }
 
-        print('User data stored in Firestore');
+        // Navigator.pushNamedAndRemoveUntil(context, '/app', (route) => false);
 
-        Navigator.pushNamedAndRemoveUntil(context, '/app', (route) => false);
+        print('User data stored in Firestore');
 
         setState(() {
           isLoading = false;
@@ -104,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
-    var currency = Provider.of<UserProvider>(context);
+    var data = Provider.of<UserProvider>(context);
 
     return Scaffold(
       body: isLoading
@@ -128,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: () {
-                        signInWithGoogle(currency);
+                        signInWithGoogle(data);
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.white,
