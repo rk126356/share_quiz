@@ -7,21 +7,14 @@ import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/widgets/all_tags_box_widget.dart';
 import 'package:share_quiz/widgets/small_category_box_widget.dart';
 
-class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({Key? key}) : super(key: key);
+class ALlTagsScreen extends StatefulWidget {
+  const ALlTagsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
+  State<ALlTagsScreen> createState() => _ALlTagsScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> {
-  // Dummy leaderboard data
-  final List<String> topPlayersThisMonth = [
-    "Player 1",
-    "Player 2",
-    "Player 3",
-  ];
-
+class _ALlTagsScreenState extends State<ALlTagsScreen> {
   final List tagItems = [];
 
   Future<void> fetchTags() async {
@@ -43,11 +36,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         for (final tag in tagItem) {
           if (!tagItems.contains(tag)) {
             tagItems.add(tag);
-          } else {}
+          } else {
+            print('$tag already exists');
+          }
         }
       }
     }
-
     setState(() {});
   }
 
@@ -62,7 +56,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Explore"),
+        title: const Text("All Tags"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -92,7 +86,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     const Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: "Search Player",
+                          hintText: "Search Tags",
                           border: InputBorder.none,
                           icon: Icon(Icons.search, color: Colors.blue),
                         ),
@@ -121,62 +115,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
               // Top Players This Month leaderboard
               const SizedBox(height: 22.0),
               const Text(
-                "Top 3 Players This Week",
+                "Top 3 Tags This Week",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Column(
-                children: topPlayersThisMonth.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final playerName = entry.value;
-                  return Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    margin: const EdgeInsets.only(top: 12),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        child: Text(
-                          "${index + 1}",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      title: Text(
-                        playerName,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      trailing: Text(
-                        "Quiz Completed: ${1000 - index * 50}",
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+              const Column(children: [Text('Coming sonnn')]),
               const SizedBox(
                 height: 10,
               ),
-              Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  ),
-                  child: const Text("See All Rankings"),
-                ),
-              ),
+
               const SizedBox(
                 height: 22,
               ),
               const Text(
-                "Recent Tags",
+                "All Tags",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,

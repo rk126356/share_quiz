@@ -8,10 +8,12 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 
 class InsideQuizScoreBoardScreen extends StatefulWidget {
   final CreateQuizDataModel quizData;
   final int? score;
+
   const InsideQuizScoreBoardScreen(
       {Key? key, required this.quizData, this.score})
       : super(key: key);
@@ -96,6 +98,7 @@ class _InsideQuizScoreBoardScreenState
           await quizCollection.update({
             'topScorerName': loadedScores.first.playerName,
             'topScorerImage': loadedScores.first.playerImage,
+            'topScorerUid': loadedScores.first.playerUid,
           });
 
           myLoadedSxores.sort((a, b) {
@@ -119,30 +122,6 @@ class _InsideQuizScoreBoardScreenState
     }
     return [];
   }
-
-  // Future<void> findAndSaveTopScorer() async {
-  //   List<Score> scores = await fetchScores();
-  //   if (scores.isNotEmpty) {
-  //     // Sort the scores by score in descending order and timeTaken in ascending order
-  //     scores.sort((a, b) {
-  //       if (a.playerScore != b.playerScore) {
-  //         return b.playerScore.compareTo(a.playerScore);
-  //       } else {
-  //         return a.timeTaken.compareTo(b.timeTaken);
-  //       }
-  //     });
-
-  //     Score topScorer = scores.first; // The top scorer is the first element
-
-  //     // You can save the top scorer in another variable or use it as needed.
-  //     // For example, you can save it to a class field or print it.
-  //     // this.topScorer = topScorer; // Save it to a class field if needed
-  //     print(
-  //         "Top Scorer: ${topScorer.playerName}, Score: ${topScorer.playerScore}, Time Taken: ${topScorer.timeTaken}");
-  //   } else {
-  //     print("No scores found.");
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +165,7 @@ class _InsideQuizScoreBoardScreenState
                       margin: const EdgeInsets.all(16),
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        'Your Correct Answer: ${widget.score}',
+                        'Your Correct Answer: ${widget.score}/${widget.quizData.noOfQuestions}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -225,7 +204,7 @@ class _InsideQuizScoreBoardScreenState
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16),
                                 ),
-                                Text('Time: ${myScore.timeTaken} sec'),
+                                Text('Time Taken: ${myScore.timeTaken} sec'),
                               ],
                             ),
                             subtitle: Row(
@@ -238,7 +217,13 @@ class _InsideQuizScoreBoardScreenState
                               ],
                             ),
                             onTap: () {
-                              // Add your onTap functionality here
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => InsideProfileScreen(
+                                          userId: myScore.playerUid,
+                                        )),
+                              );
                             },
                           ),
                         );
@@ -275,7 +260,7 @@ class _InsideQuizScoreBoardScreenState
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16),
                                 ),
-                                Text('Time: ${score.timeTaken} sec'),
+                                Text('Time Taken: ${score.timeTaken} sec'),
                               ],
                             ),
                             subtitle: Row(
@@ -288,7 +273,13 @@ class _InsideQuizScoreBoardScreenState
                               ],
                             ),
                             onTap: () {
-                              // Add your onTap functionality here
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => InsideProfileScreen(
+                                          userId: score.playerUid,
+                                        )),
+                              );
                             },
                           ),
                         );

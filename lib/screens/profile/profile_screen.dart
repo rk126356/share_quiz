@@ -1,10 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -275,6 +278,22 @@ class _QuickLinks extends StatelessWidget {
           ),
           onTap: () {
             // Handle navigation to the settings screen.
+          },
+        ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.exclamationmark,
+              color: AppColors.primaryColor),
+          title: const Text("Log Out"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () async {
+            await GoogleSignIn().signOut();
+            FirebaseAuth.instance.signOut();
+            SharedPreferences preferences =
+                await SharedPreferences.getInstance();
+            await preferences.clear();
           },
         ),
         const SizedBox(

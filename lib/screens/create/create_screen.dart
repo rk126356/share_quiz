@@ -398,6 +398,13 @@ class _CreateScreenState extends State<CreateScreen> {
           .collection('myQuizzes')
           .doc(quizData.quizID)
           .set(quizData.toJson());
+
+      final userCollection =
+          await _firestore.collection('users').doc(data.userData.uid).get();
+
+      await userCollection.reference
+          .update({'noOfQuizzes': FieldValue.increment(1)});
+
       previewQuestions.clear();
       questionController.clear();
       for (var controller in choiceControllers) {

@@ -90,6 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
             'avatarUrl': user.photoURL,
             'plan': 'free',
             'username': username,
+            'noOfFollowers': 0,
+            'noOfFollowings': 0,
+            'noOfQuizzes': 0,
           });
         }
 

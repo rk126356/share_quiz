@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-Widget statTile(String title, IconData icon, String value) {
+Widget statTile(String title, IconData icon, String value, VoidCallback onTap) {
   return ListTile(
     leading: Icon(icon, color: CupertinoColors.activeBlue),
     title: Text(
@@ -18,5 +18,6 @@ Widget statTile(String title, IconData icon, String value) {
         fontWeight: FontWeight.bold,
       ),
     ),
+    onTap: onTap,
   );
 }

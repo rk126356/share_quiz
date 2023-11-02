@@ -17,8 +17,6 @@ class AllQuizTab extends StatelessWidget {
 
     final userCollection = await firestore.collection('users').get();
 
-    quizItems.clear();
-
     for (final userDoc in userCollection.docs) {
       final userId = userDoc.id;
       final quizCollection =
@@ -48,7 +46,7 @@ class AllQuizTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: fetchQuizzes(),
+      future: quizItems.isEmpty ? fetchQuizzes() : null,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: LoadingWidget());

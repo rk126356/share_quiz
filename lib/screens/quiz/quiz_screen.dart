@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/quiz_data_class.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
+import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
+import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/screens/quiz/tabs/all_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/easy_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/hard_quiz_tab.dart';
@@ -18,21 +20,6 @@ class QuizScreen extends StatefulWidget {
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
-final List<QuizDataClass> quizItems = [
-  QuizDataClass(
-      title: "Who is cristiano ronaldo",
-      taken: 100,
-      views: 200,
-      likes: 5,
-      topScorerName: 'Rahul'),
-  QuizDataClass(
-      title: "Who is cristiano ronaldo",
-      taken: 120,
-      views: 200,
-      likes: 5,
-      topScorerName: 'Rahul'),
-];
-
 class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
@@ -42,13 +29,7 @@ class _QuizScreenState extends State<QuizScreen> {
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.chart_bar_alt_fill),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const CreateProfileScreen()),
-              );
-            },
+            onPressed: () {},
           ),
           IconButton(
             icon: const Icon(CupertinoIcons.search),
@@ -71,7 +52,13 @@ class _QuizScreenState extends State<QuizScreen> {
                     SmallCategoryBox(
                       title: 'All Tags',
                       backgroundColor: Colors.green,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ALlTagsScreen()),
+                        );
+                      },
                     ),
                     SmallCategoryBox(
                       title: 'Entertainment',
@@ -81,12 +68,28 @@ class _QuizScreenState extends State<QuizScreen> {
                     SmallCategoryBox(
                       title: 'JEE Main',
                       backgroundColor: Colors.pink,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InsideQuizTagScreen(
+                                    tag: '#JEE Main',
+                                  )),
+                        );
+                      },
                     ),
                     SmallCategoryBox(
                       title: 'India',
                       backgroundColor: Colors.deepOrangeAccent,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InsideQuizTagScreen(
+                                    tag: '#india',
+                                  )),
+                        );
+                      },
                     ),
                     SmallCategoryBox(
                       title: 'Bollywood',

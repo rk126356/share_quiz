@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
+import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 
 class QuizCardItems extends StatefulWidget {
   final CreateQuizDataModel quizData;
@@ -74,11 +76,8 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 ),
               ),
             ),
-            trailing: IconButton(
-                onPressed: () {
-                  print("SHARE");
-                },
-                icon: const Icon(Icons.share)),
+            trailing:
+                IconButton(onPressed: () {}, icon: const Icon(Icons.share)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -90,14 +89,28 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  widget.quizData.categories!.isNotEmpty
-                      ? 'Tags: ${widget.quizData.categories?.join(', ')}'
-                      : 'No Tags',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                Row(
+                  children:
+                      widget.quizData.categories!.asMap().entries.map((entry) {
+                    final tagName = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => InsideQuizTagScreen(
+                                        tag: tagName,
+                                      )),
+                            );
+                          },
+                          child: Text(
+                            tagName,
+                            style: AppFonts.link,
+                          )),
+                    );
+                  }).toList(),
                 ),
               ],
             ),

@@ -2,11 +2,14 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/colors.dart';
+import 'package:share_quiz/screens/home/search_quiz_screen.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
 import 'package:share_quiz/screens/home/widgets/quiz_desxription_gap.dart';
 import 'package:share_quiz/screens/home/widgets/right_panel.dart';
@@ -20,19 +23,6 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
-final List<Color> predefinedColors = [
-  Colors.red,
-  Colors.green,
-  Colors.blue.shade800,
-  Colors.orange,
-  Colors.purple,
-  Colors.teal,
-  Colors.pink,
-  CupertinoColors.black,
-  Colors.brown,
-  Colors.grey,
-];
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
@@ -75,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
             shares: quizData['shares'],
             topScorerImage: quizData['topScorerImage'],
             topScorerName: quizData['topScorerName'],
+            topScorerUid: quizData['topScorerUid'],
             categories: quizData['categories'],
             noOfQuestions: quizData['noOfQuestions'],
             creatorUserID: quizData['creatorUserID'],
@@ -93,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen>
         quizItems.addAll(newQuizItems);
       });
     } catch (e) {
-      print("Error fetching quizzes: $e");
+      if (kDebugMode) {
+        print("Error fetching quizzes: $e");
+      }
     }
     _isLoading = false;
   }
@@ -132,13 +125,14 @@ class _HomeScreenState extends State<HomeScreen>
                   createdAt: quizItems[index].createdAt,
                   quizTitle: quizItems[index].quizTitle,
                   quizDescription: quizItems[index].quizDescription,
-                  categories: quizItems[index].categories!.join(', '),
+                  categories: quizItems[index].categories!,
                   noOfQuestions: quizItems[index].noOfQuestions,
                   likes: quizItems[index].likes!,
                   views: quizItems[index].views,
                   taken: quizItems[index].taken,
                   topScorerImage: quizItems[index].topScorerImage,
                   topScorerName: quizItems[index].topScorerName,
+                  topScorerUid: quizItems[index].topScorerUid ?? '',
                   wins: quizItems[index].wins,
                   shares: quizItems[index].shares.toString(),
                   profileImg: quizItems[index].creatorImage!,
@@ -196,14 +190,20 @@ class _HomeScreenState extends State<HomeScreen>
                 Row(
                   children: [
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SearchQuizScreen()),
+                          );
+                        },
                         icon: const Icon(CupertinoIcons.search)),
                     IconButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
+                                builder: (context) => const SearchQuizScreen()),
                           );
                         },
                         icon: const Icon(CupertinoIcons.refresh)),
@@ -278,6 +278,7 @@ class QuizTikTokItems extends StatefulWidget {
     this.views,
     this.wins,
     required this.creatorUserID,
+    required this.topScorerUid,
     this.timer,
   }) : super(key: key);
 
@@ -289,9 +290,10 @@ class QuizTikTokItems extends StatefulWidget {
   final String username;
   final Timestamp? createdAt;
   final int? noOfQuestions;
-  final String categories;
+  final List<dynamic> categories;
   final String? topScorerName;
   final String? topScorerImage;
+  final String topScorerUid;
   final int likes;
   final String shares;
   final String profileImg;
@@ -330,213 +332,212 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
       isViewsUpdated = true;
     }
 
-    return InkWell(
-      onTap: () {},
-      child: SizedBox(
-        width: widget.size.width,
-        height: widget.size.height,
-        child: Stack(
-          children: [
-            SizedBox(
-                width: widget.size.width,
-                height: widget.size.height,
-                child: Stack(
-                  children: [
-                    Card(
-                      color: predefinedColors[
-                          Random().nextInt(predefinedColors.length)],
-                      child: Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 50),
-                                child: ListTile(
-                                  title: Text(
-                                    widget.quizTitle!,
-                                    textAlign: TextAlign.left,
-                                    style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: Text(
-                                      widget.quizDescription!,
-                                      textAlign: TextAlign.left,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 10),
-                                child: ButtonBar(
-                                  alignment: MainAxisAlignment.start,
-                                  children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  InsideQuizScreen(
-                                                    quizID: widget.quizID!,
-                                                    creatorUserID:
-                                                        widget.creatorUserID,
-                                                    isViewsUpdated:
-                                                        isViewsUpdated,
-                                                  )),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.info_outline,
-                                          size: 24),
-                                      label: const Text(
-                                        "More Info",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 8),
-                                        side: const BorderSide(
-                                            color: Colors
-                                                .white), // Set the border color to white
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              8.0), // Adjust the border radius as needed
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 10),
-                                child: ButtonBar(
-                                  alignment: MainAxisAlignment.start,
-                                  children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  InsideQuizScreen(
-                                                    isQuickPlay: true,
-                                                    creatorUserID:
-                                                        widget.creatorUserID,
-                                                    quizID: widget.quizID!,
-                                                    isViewsUpdated:
-                                                        isViewsUpdated,
-                                                  )),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.play_arrow,
-                                          size: 24),
-                                      label: const Text(
-                                        "Quick Play",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 8),
-                                        side: const BorderSide(
-                                            color: Colors
-                                                .white), // Set the border color to white
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              8.0), // Adjust the border radius as needed
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              quizDescriptionSizedBox(widget.quizDescription),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                )),
-            SizedBox(
+    return SizedBox(
+      width: widget.size.width,
+      height: widget.size.height,
+      child: Stack(
+        children: [
+          SizedBox(
               width: widget.size.width,
               height: widget.size.height,
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                    top: 25,
-                    bottom: 10,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
+              child: Stack(
+                children: [
+                  Card(
+                    color: predefinedColors[
+                        Random().nextInt(predefinedColors.length)],
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
                       children: [
-                        Flexible(
-                          child: Row(
-                            children: [
-                              LeftPanel(
-                                size: widget.size,
-                                name: widget.name,
-                                username: widget.username,
-                                categories: widget.categories,
-                                topScorerImage: widget.topScorerImage == null
-                                    ? 'https://www.zooniverse.org/assets/simple-avatar.png'
-                                    : widget.topScorerImage!,
-                                topScorerName: widget.topScorerName!,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 50),
+                              child: ListTile(
+                                title: Text(
+                                  widget.quizTitle!,
+                                  textAlign: TextAlign.left,
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: Text(
+                                    widget.quizDescription!,
+                                    textAlign: TextAlign.left,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              RightPanel(
-                                quizID: widget.quizID!,
-                                creatorUserID: widget.creatorUserID,
-                                size: widget.size,
-                                views: widget.views.toString(),
-                                noOfQuestions: widget.noOfQuestions.toString(),
-                                likes: widget.likes,
-                                shares: widget.shares,
-                                profileImg: widget.profileImg,
-                                taken: widget.taken.toString(),
-                                categories: widget.categories,
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: ButtonBar(
+                                alignment: MainAxisAlignment.start,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                InsideQuizScreen(
+                                                  quizID: widget.quizID!,
+                                                  creatorUserID:
+                                                      widget.creatorUserID,
+                                                  isViewsUpdated:
+                                                      isViewsUpdated,
+                                                )),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.info_outline,
+                                        size: 24),
+                                    label: const Text(
+                                      "More Info",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      side: const BorderSide(
+                                          color: Colors
+                                              .white), // Set the border color to white
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            8.0), // Adjust the border radius as needed
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: ButtonBar(
+                                alignment: MainAxisAlignment.start,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                InsideQuizScreen(
+                                                  isQuickPlay: true,
+                                                  creatorUserID:
+                                                      widget.creatorUserID,
+                                                  quizID: widget.quizID!,
+                                                  isViewsUpdated:
+                                                      isViewsUpdated,
+                                                )),
+                                      );
+                                    },
+                                    icon:
+                                        const Icon(Icons.play_arrow, size: 24),
+                                    label: const Text(
+                                      "Quick Play",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      side: const BorderSide(
+                                          color: Colors
+                                              .white), // Set the border color to white
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            8.0), // Adjust the border radius as needed
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            quizDescriptionSizedBox(widget.quizDescription),
+                          ],
                         ),
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            DateFormat('yyyy-MM-dd')
-                                .format(widget.createdAt!.toDate()),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        )
                       ],
                     ),
+                  )
+                ],
+              )),
+          SizedBox(
+            width: widget.size.width,
+            height: widget.size.height,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  top: 25,
+                  bottom: 10,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Flexible(
+                        child: Row(
+                          children: [
+                            LeftPanel(
+                              size: widget.size,
+                              creatorUserID: widget.creatorUserID,
+                              name: widget.name,
+                              username: widget.username,
+                              categories: widget.categories,
+                              topScorerImage: widget.topScorerImage == null
+                                  ? 'https://www.zooniverse.org/assets/simple-avatar.png'
+                                  : widget.topScorerImage!,
+                              topScorerName: widget.topScorerName!,
+                              topScorerUid: widget.topScorerUid,
+                            ),
+                            RightPanel(
+                              quizID: widget.quizID!,
+                              creatorUserID: widget.creatorUserID,
+                              size: widget.size,
+                              views: widget.views.toString(),
+                              noOfQuestions: widget.noOfQuestions.toString(),
+                              likes: widget.likes,
+                              shares: widget.shares,
+                              profileImg: widget.profileImg,
+                              taken: widget.taken.toString(),
+                              categories: widget.categories!.join(', '),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Text(
+                          DateFormat('yyyy-MM-dd')
+                              .format(widget.createdAt!.toDate()),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      )
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:share_quiz/screens/home/colors.dart';
+import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 
 class RightPanel extends StatefulWidget {
   const RightPanel(
@@ -139,7 +140,8 @@ class _RightPanelState extends State<RightPanel> {
 
       if (_isLiked) {
         if (currentLikes > 0) {
-          await quizCollection.reference.update({'likes': currentLikes - 1});
+          await quizCollection.reference
+              .update({'likes': FieldValue.increment(-1)});
         }
 
         for (final doc in likedQuizSnapshot.docs) {
@@ -152,10 +154,11 @@ class _RightPanelState extends State<RightPanel> {
           _currentLikes = update.toString();
         });
       } else {
-        await quizCollection.reference.update({'likes': currentLikes + 1});
+        await quizCollection.reference
+            .update({'likes': FieldValue.increment(1)});
         if (currentDisLikes > 0) {
           await quizCollection.reference
-              .update({'disLikes': currentDisLikes - 1});
+              .update({'disLikes': FieldValue.increment(-1)});
         }
 
         List<String> categories1 = categories.split(',');
@@ -207,8 +210,19 @@ class _RightPanelState extends State<RightPanel> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  getProfile(
-                    profileImg: widget.profileImg,
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => InsideProfileScreen(
+                                  userId: widget.creatorUserID,
+                                )),
+                      );
+                    },
+                    child: getProfile(
+                      profileImg: widget.profileImg,
+                    ),
                   ),
                   getIcon(
                     icon: CupertinoIcons.question_circle,
@@ -233,7 +247,6 @@ class _RightPanelState extends State<RightPanel> {
                           onTap: () {
                             addLikedQuizToFirebase(
                                 widget.quizID, widget.categories);
-                            print(_currentLikes);
                           },
                           child: Column(
                             children: [
@@ -358,7 +371,7 @@ class _RightPanelState extends State<RightPanel> {
                 ),
                 child: const Center(
                     child: Icon(
-                  Icons.add,
+                  CupertinoIcons.forward,
                   color: white,
                   size: 15,
                 )),

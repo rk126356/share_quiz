@@ -19,6 +19,7 @@ class CreateQuizDataModel {
   int? shares;
   String? topScorerName;
   String? topScorerImage;
+  String? topScorerUid;
   Timestamp? createdAt;
   String? visibility;
   int? timer;
@@ -43,6 +44,7 @@ class CreateQuizDataModel {
     this.shares,
     this.topScorerName,
     this.topScorerImage,
+    this.topScorerUid,
     this.createdAt,
     this.visibility,
     this.timer,
@@ -74,6 +76,7 @@ class CreateQuizDataModel {
     wins = json['wins'];
     topScorerName = json['topScorerName'];
     topScorerImage = json['topScorerImage'];
+    topScorerUid = json['topScorerUid'];
     visibility = json['visibility'];
     timer = json['timer'];
     difficulty = json['difficulty'];
@@ -102,6 +105,7 @@ class CreateQuizDataModel {
     data['shares'] = shares;
     data['topScorerName'] = topScorerName;
     data['topScorerImage'] = topScorerImage;
+    data['topScorerUid'] = topScorerUid;
     data['visibility'] = visibility;
     data['timer'] = timer;
     data['difficulty'] = difficulty;

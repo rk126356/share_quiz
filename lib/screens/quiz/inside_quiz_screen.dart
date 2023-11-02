@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/updateShare.dart';
+import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
+import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/screens/quiz/play_quiz_screen.dart';
 import 'package:share_quiz/widgets/avatar_url_widget.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -260,7 +262,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
       if (_isDisliked) {
         if (currentDisLikes > 0) {
           await _quizCollection.reference
-              .update({'disLikes': currentDisLikes - 1});
+              .update({'disLikes': FieldValue.increment(-1)});
         }
         for (final doc in dislikedQuizSnapshot.docs) {
           await doc.reference.delete();
@@ -515,7 +517,13 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                     children: [
                       avatarTile('Creator', quizData!.creatorImage!,
                           quizData.creatorName.toString(), () {
-                        print("TAP");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => InsideProfileScreen(
+                                    userId: quizData.creatorUserID!,
+                                  )),
+                        );
                       }),
                       avatarTile('Top Scorer', quizData.topScorerImage!,
                           quizData.topScorerName.toString(), () {
@@ -538,24 +546,58 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Column(
                     children: [
-                      statTile('Tags', CupertinoIcons.tag,
-                          '${quizData?.categories?.join(', ')}'),
+                      ListTile(
+                        leading: const Icon(CupertinoIcons.tag,
+                            color: CupertinoColors.activeBlue),
+                        title: const Text(
+                          'Tags',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        subtitle: Row(
+                          children:
+                              quizData.categories!.asMap().entries.map((entry) {
+                            final tagName = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              InsideQuizTagScreen(
+                                                tag: tagName,
+                                              )),
+                                    );
+                                  },
+                                  child: Text(
+                                    tagName,
+                                    style: AppFonts.link,
+                                  )),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                       statTile('Questions', CupertinoIcons.question_circle,
-                          quizData.noOfQuestions.toString()),
+                          quizData.noOfQuestions.toString(), () {}),
                       statTile('Views', CupertinoIcons.eye,
-                          quizData.views.toString()),
+                          quizData.views.toString(), () {}),
                       statTile('Plays', CupertinoIcons.play_arrow,
-                          quizData.taken.toString()),
+                          quizData.taken.toString(), () {}),
                       statTile(
                           'Likes',
                           _isLiked
                               ? CupertinoIcons.heart_fill
                               : CupertinoIcons.heart,
-                          quizData.likes.toString()),
+                          quizData.likes.toString(),
+                          () {}),
                       statTile('Shares', CupertinoIcons.share,
-                          quizData.shares.toString()),
+                          quizData.shares.toString(), () {}),
                       statTile('Wins', CupertinoIcons.check_mark_circled,
-                          quizData.wins.toString()),
+                          quizData.wins.toString(), () {}),
                     ],
                   ),
                 ),

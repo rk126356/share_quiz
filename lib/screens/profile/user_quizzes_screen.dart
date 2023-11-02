@@ -1,52 +1,54 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
+import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
-class InsideQuizTagScreen extends StatefulWidget {
-  final String tag;
-  const InsideQuizTagScreen({super.key, required this.tag});
+class UserQuizzesScreen extends StatefulWidget {
+  final String uid;
+  final String username;
+  const UserQuizzesScreen(
+      {super.key, required this.uid, required this.username});
 
   @override
-  State<InsideQuizTagScreen> createState() => _InsideQuizTagScreenState();
+  State<UserQuizzesScreen> createState() => _UserQuizzesScreenState();
 }
 
-class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
+class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
   final List<CreateQuizDataModel> quizItems = [];
 
   Future<void> fetchQuizzes() async {
     final firestore = FirebaseFirestore.instance;
 
-    final userCollection = await firestore.collection('users').get();
-
     quizItems.clear();
 
-    for (final userDoc in userCollection.docs) {
-      final userId = userDoc.id;
-      final quizCollection = await firestore
-          .collection('users/$userId/myQuizzes')
-          .where('categories', arrayContainsAny: [widget.tag]).get();
+    final quizCollection = await firestore
+        .collection('users/${widget.uid}/myQuizzes')
+        .orderBy('createdAt', descending: true)
+        .get();
 
-      for (final quizDoc in quizCollection.docs) {
-        final quizData = quizDoc.data();
-        final quizItem = CreateQuizDataModel(
-          quizID: quizData['quizID'],
-          quizDescription: quizData['quizDescription'],
-          quizTitle: quizData['quizTitle'],
-          likes: quizData['likes'],
-          views: quizData['views'],
-          taken: quizData['taken'],
-          categories: quizData['categories'],
-          noOfQuestions: quizData['noOfQuestions'],
-          creatorImage: quizData['creatorImage'],
-          creatorName: quizData['creatorName'],
-          creatorUserID: quizData['creatorUserID'],
-        );
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
 
-        quizItems.add(quizItem);
-      }
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorImage: quizData['creatorImage'],
+        creatorName: quizData['creatorName'],
+        creatorUserID: quizData['creatorUserID'],
+      );
+
+      quizItems.add(quizItem);
     }
   }
 
@@ -55,7 +57,7 @@ class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
-        title: Text('Tag: ${widget.tag}'),
+        title: Text('${widget.username}: Quizzes'),
       ),
       body: FutureBuilder(
         future: fetchQuizzes(),
@@ -64,8 +66,8 @@ class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
             return const Center(child: LoadingWidget());
           } else {
             if (quizItems.isEmpty) {
-              return Center(
-                child: Text('No quizzes found for this tag ${widget.tag}.'),
+              return const Center(
+                child: Text('This user have not created any quiz yet.'),
               );
             } else {
               return SizedBox(

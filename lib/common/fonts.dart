@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -30,7 +31,7 @@ class AppFonts {
 
   static final TextStyle link = GoogleFonts.roboto(
     fontSize: 16,
-    color: Colors.blue,
+    color: CupertinoColors.activeBlue,
     decoration: TextDecoration.underline,
   );
 }

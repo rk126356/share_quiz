@@ -77,7 +77,6 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
             return const Center(child: LoadingWidget());
           } else {
             if (quizItems.isEmpty) {
-              // If there are no quizzes, display a "Create a Quiz Now" button.
               return const Center(
                 child: Text('You have not created any quiz yet.'),
               );
@@ -88,11 +87,15 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                   itemCount: quizItems.length,
                   itemBuilder: (context, index) {
                     return SizedBox(
-                      child: MyQuizCardItems(
-                        onDelete: () {
-                          deleteQuiz(quizItems[index].quizID!);
-                        },
-                        quizData: quizItems[index],
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            bottom: quizItems.length - 1 == index ? 30.0 : 0.0),
+                        child: MyQuizCardItems(
+                          onDelete: () {
+                            deleteQuiz(quizItems[index].quizID!);
+                          },
+                          quizData: quizItems[index],
+                        ),
                       ),
                     );
                   },

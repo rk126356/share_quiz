@@ -216,9 +216,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Create Profile',
-          style: TextStyle(
+        title: Text(
+          widget.isEdit != null ? 'Edit Profile' : 'Create Profile',
+          style: const TextStyle(
             color: Colors.white, // Title text color
             fontSize: 24.0, // Title text size
           ),
