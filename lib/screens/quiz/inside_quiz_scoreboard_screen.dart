@@ -39,12 +39,11 @@ class _InsideQuizScoreBoardScreenState
         Provider.of<UserProvider>(context, listen: false).userData;
     final firestore = FirebaseFirestore.instance;
     final document = await firestore
-        .collection('users/${widget.quizData.creatorUserID}/myQuizzes')
+        .collection('allQuizzes')
         .doc(widget.quizData.quizID)
         .get();
-    final quizCollection = firestore
-        .collection('users/${widget.quizData.creatorUserID}/myQuizzes')
-        .doc(widget.quizData.quizID);
+    final quizCollection =
+        firestore.collection('allQuizzes').doc(widget.quizData.quizID);
 
     if (document.exists) {
       final data = document.data();

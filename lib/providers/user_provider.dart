@@ -4,12 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider extends ChangeNotifier {
   var _userData = UserModel(
-    uid: 'HpWp3pyzgNWzvR2deGOmKPlBFKp2',
-    avatarUrl:
-        'https://lh3.googleusercontent.com/a/ACg8ocIMy4Ub0gQghVTQOBgRvZzg8fgOjYRilIIv3dIzSZpFKw=s96-c',
-    name: 'SuperSuper Gaming',
-    email: 'rsk126356@gmail.com',
-  );
+      // uid: 'HpWp3pyzgNWzvR2deGOmKPlBFKp2',
+      // avatarUrl:
+      //     'https://lh3.googleusercontent.com/a/ACg8ocIMy4Ub0gQghVTQOBgRvZzg8fgOjYRilIIv3dIzSZpFKw=s96-c',
+      // name: 'SuperSuper Gaming',
+      // email: 'rsk126356@gmail.com',
+      );
   bool _isFirstLaunch = true;
   bool _isNewOpen = true;
 

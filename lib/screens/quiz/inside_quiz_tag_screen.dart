@@ -19,34 +19,29 @@ class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
   Future<void> fetchQuizzes() async {
     final firestore = FirebaseFirestore.instance;
 
-    final userCollection = await firestore.collection('users').get();
-
     quizItems.clear();
 
-    for (final userDoc in userCollection.docs) {
-      final userId = userDoc.id;
-      final quizCollection = await firestore
-          .collection('users/$userId/myQuizzes')
-          .where('categories', arrayContainsAny: [widget.tag]).get();
+    final quizCollection = await firestore
+        .collection('allQuizzes')
+        .where('categories', arrayContainsAny: [widget.tag]).get();
 
-      for (final quizDoc in quizCollection.docs) {
-        final quizData = quizDoc.data();
-        final quizItem = CreateQuizDataModel(
-          quizID: quizData['quizID'],
-          quizDescription: quizData['quizDescription'],
-          quizTitle: quizData['quizTitle'],
-          likes: quizData['likes'],
-          views: quizData['views'],
-          taken: quizData['taken'],
-          categories: quizData['categories'],
-          noOfQuestions: quizData['noOfQuestions'],
-          creatorImage: quizData['creatorImage'],
-          creatorName: quizData['creatorName'],
-          creatorUserID: quizData['creatorUserID'],
-        );
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorImage: quizData['creatorImage'],
+        creatorName: quizData['creatorName'],
+        creatorUserID: quizData['creatorUserID'],
+      );
 
-        quizItems.add(quizItem);
-      }
+      quizItems.add(quizItem);
     }
   }
 

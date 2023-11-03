@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/fonts.dart';
+import 'package:share_quiz/controllers/updateShare.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 
@@ -19,6 +22,10 @@ class QuizCardItems extends StatefulWidget {
 }
 
 class _QuizCardItemsState extends State<QuizCardItems> {
+  bool isViewsUpdated = false;
+  bool _isLiked = false;
+  bool _isDisliked = false;
+
   updateViews() async {
     final firestore = FirebaseFirestore.instance;
 
@@ -33,11 +40,131 @@ class _QuizCardItemsState extends State<QuizCardItems> {
     await quizCollection.reference.update({'views': updatedViews});
   }
 
-  bool isViewsUpdated = false;
+  Future<void> checkIfQuizIsLiked() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final likedQuizRef = firestore.collection('users/$uid/myLikedQuizzes');
+
+      final likedQuizSnapshot = await likedQuizRef
+          .where('quizID', isEqualTo: widget.quizData.quizID)
+          .get();
+
+      setState(() {
+        _isLiked = likedQuizSnapshot.docs.isNotEmpty;
+      });
+    }
+  }
+
+  Future<void> checkIfQuizIsDisliked() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final dislikedQuizRef =
+          firestore.collection('users/$uid/myDislikedQuizzes');
+
+      final dislikedQuizSnapshot = await dislikedQuizRef
+          .where('quizID', isEqualTo: widget.quizData.quizID)
+          .get();
+
+      setState(() {
+        _isDisliked = dislikedQuizSnapshot.docs.isNotEmpty;
+      });
+    }
+  }
+
+  String? _currentLikes;
+  bool _isLoading = false;
+
+  Future<void> addLikedQuizToFirebase(String quizID, String categories) async {
+    setState(() {
+      _isLoading = true;
+    });
+    final firestore = FirebaseFirestore.instance;
+
+    final quizCollection =
+        await firestore.collection('allQuizzes').doc(quizID).get();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final likedQuizRef = firestore.collection('users/$uid/myLikedQuizzes');
+      final likedQuizSnapshot =
+          await likedQuizRef.where('quizID', isEqualTo: quizID).get();
+
+      final dislikedQuizRef =
+          firestore.collection('users/$uid/myDislikedQuizzes');
+
+      final dislikedQuizSnapshot =
+          await dislikedQuizRef.where('quizID', isEqualTo: quizID).get();
+
+      final quizDataMap = quizCollection.data();
+
+      int currentLikes = quizDataMap?['likes'] ?? 0;
+      int currentDisLikes = quizDataMap?['disLikes'] ?? 0;
+
+      if (_isLiked) {
+        if (currentLikes > 0) {
+          await quizCollection.reference
+              .update({'likes': FieldValue.increment(-1)});
+        }
+
+        for (final doc in likedQuizSnapshot.docs) {
+          await doc.reference.delete();
+        }
+
+        setState(() {
+          _isLiked = false;
+          int update = quizDataMap?['likes'] - 1;
+          _currentLikes = update.toString();
+        });
+      } else {
+        await quizCollection.reference
+            .update({'likes': FieldValue.increment(1)});
+        if (currentDisLikes > 0) {
+          await quizCollection.reference
+              .update({'disLikes': FieldValue.increment(-1)});
+        }
+
+        List<String> categories1 = categories.split(',');
+
+        categories1 = categories1.map((category) => category.trim()).toList();
+
+        await likedQuizRef.add({
+          'quizID': quizID,
+          'categories': categories1,
+        });
+
+        if (_isDisliked) {
+          for (final doc in dislikedQuizSnapshot.docs) {
+            await doc.reference.delete();
+          }
+        }
+
+        setState(() {
+          _isLiked = true;
+          int update = quizDataMap?['likes'] + 1;
+          _currentLikes = update.toString();
+        });
+      }
+    }
+    checkIfQuizIsLiked();
+    checkIfQuizIsDisliked();
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
+      checkIfQuizIsLiked();
+      checkIfQuizIsDisliked();
       updateViews();
       isViewsUpdated = true;
     }
@@ -54,7 +181,6 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 MaterialPageRoute(
                     builder: (context) => InsideQuizScreen(
                           quizID: widget.quizData.quizID!,
-                          creatorUserID: widget.quizData.creatorUserID,
                           isViewsUpdated: isViewsUpdated,
                         )),
               );
@@ -76,8 +202,12 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 ),
               ),
             ),
-            trailing:
-                IconButton(onPressed: () {}, icon: const Icon(Icons.share)),
+            trailing: IconButton(
+                onPressed: () {
+                  updateShare(
+                      widget.quizData!.quizID, widget.quizData.creatorUserID);
+                },
+                icon: const Icon(Icons.share)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -182,21 +312,37 @@ class _QuizCardItemsState extends State<QuizCardItems> {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(
-                      CupertinoIcons.heart,
-                      color: CupertinoColors.activeBlue,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.quizData.likes.toString(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
+                child: InkWell(
+                  onTap: () {
+                    addLikedQuizToFirebase(widget.quizData.quizID!,
+                        widget.quizData.categories.toString());
+                  },
+                  child: _isLoading
+                      ? Lottie.asset(
+                          'assets/images/heart_animation.json',
+                          width: 40,
+                          height: 40,
+                        )
+                      : Row(
+                          children: [
+                            Icon(
+                              _isLiked
+                                  ? CupertinoIcons.heart_fill
+                                  : CupertinoIcons.heart,
+                              color: CupertinoColors.activeBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _currentLikes != null
+                                  ? _currentLikes!
+                                  : widget.quizData.likes.toString(),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
             ],

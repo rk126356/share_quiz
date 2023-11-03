@@ -27,24 +27,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Future<void> fetchTags() async {
     final firestore = FirebaseFirestore.instance;
 
-    final userCollection = await firestore.collection('users').get();
-
     tagItems.clear();
 
-    for (final userDoc in userCollection.docs) {
-      final userId = userDoc.id;
-      final quizCollection =
-          await firestore.collection('users/$userId/myQuizzes').get();
+    final quizCollection = await firestore.collection('allQuizzes').get();
 
-      for (final tagDoc in quizCollection.docs) {
-        final tagData = tagDoc.data();
-        final tagItem = tagData['categories'];
+    for (final tagDoc in quizCollection.docs) {
+      final tagData = tagDoc.data();
+      final tagItem = tagData['categories'];
 
-        for (final tag in tagItem) {
-          if (!tagItems.contains(tag)) {
-            tagItems.add(tag);
-          } else {}
-        }
+      for (final tag in tagItem) {
+        if (!tagItems.contains(tag)) {
+          tagItems.add(tag);
+        } else {}
       }
     }
 

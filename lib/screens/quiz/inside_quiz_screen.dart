@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/updateShare.dart';
+import 'package:share_quiz/data/quiz_item_data.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -20,15 +22,13 @@ class InsideQuizScreen extends StatefulWidget {
   final String quizID;
   final bool? isViewsUpdated;
   final bool? isQuickPlay;
-  final String? creatorUserID;
 
-  const InsideQuizScreen(
-      {Key? key,
-      required this.quizID,
-      this.isViewsUpdated,
-      this.isQuickPlay,
-      this.creatorUserID})
-      : super(key: key);
+  const InsideQuizScreen({
+    Key? key,
+    required this.quizID,
+    this.isViewsUpdated,
+    this.isQuickPlay,
+  }) : super(key: key);
 
   @override
   State<InsideQuizScreen> createState() => _InsideQuizScreenState();
@@ -40,96 +40,95 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   bool _isDisliked = false;
   bool _isLoading = false;
   bool _shouldPlay = false;
+  bool _isQuizDataFound = false;
 
   late DocumentSnapshot<Map<String, dynamic>> _quizCollection;
 
   Future<CreateQuizDataModel> fetchQuizDetails() async {
     final firestore = FirebaseFirestore.instance;
 
-    final userCollection = await firestore.collection('users').get();
+    final quizCollection =
+        await firestore.collection('allQuizzes').doc(widget.quizID).get();
 
-    if (widget.creatorUserID != null) {
-      final quizCollection = await firestore
-          .collection('users/${widget.creatorUserID}/myQuizzes')
-          .doc(widget.quizID)
-          .get();
+    _quizCollection = quizCollection;
 
-      _quizCollection = quizCollection;
-    } else {
-      for (final userDoc in userCollection.docs) {
-        final userId = userDoc.id;
-        final quizCollection = await firestore
-            .collection('users/$userId/myQuizzes')
-            .doc(widget.quizID)
-            .get();
+    final quizDataMap = _quizCollection.data();
 
-        _quizCollection = quizCollection;
-      }
-    }
+    if (quizDataMap?['quizzes'] != null) {
+      setState(() {
+        _isQuizDataFound = true;
+      });
 
-    try {
-      final quizDataMap = _quizCollection.data();
-      final quizzesList = quizDataMap?['quizzes'] as List<dynamic>;
+      try {
+        final quizzesList = quizDataMap?['quizzes'] as List<dynamic>;
 
-      int currentViews = quizDataMap?['views'] ?? 0;
+        int currentViews = quizDataMap?['views'] ?? 0;
 
-      int updatedViews = currentViews;
+        int updatedViews = currentViews;
 
-      if (widget.isViewsUpdated != null) {
-        updatedViews + 1;
-        await _quizCollection.reference.update({'views': updatedViews});
-      } else {
-        updatedViews - 1;
-      }
+        if (widget.isViewsUpdated != null) {
+          updatedViews + 1;
+          await _quizCollection.reference
+              .update({'views': FieldValue.increment(1)});
+        } else {
+          updatedViews - 1;
+        }
 
-      CreateQuizDataModel data = CreateQuizDataModel(
-        quizID: widget.quizID,
-        quizDescription: quizDataMap?['quizDescription'],
-        quizTitle: quizDataMap?['quizTitle'],
-        likes: quizDataMap?['likes'],
-        disLikes: quizDataMap?['DisLikes'],
-        views: updatedViews,
-        taken: quizDataMap?['taken'],
-        wins: quizDataMap?['wins'],
-        topScorerImage: quizDataMap?['topScorerImage'],
-        topScorerName: quizDataMap?['topScorerName'],
-        categories: quizDataMap?['categories'],
-        noOfQuestions: quizDataMap?['noOfQuestions'],
-        creatorName: quizDataMap?['creatorName'],
-        creatorImage: quizDataMap?['creatorImage'],
-        shares: quizDataMap?['shares'],
-        timer: quizDataMap?['timer'],
-        visibility: quizDataMap?['visibility'],
-        creatorUserID: quizDataMap?['creatorUserID'],
-        quizzes: quizzesList.map((quizMap) {
-          return Quizzes(
-            questionTitle: quizMap['questionTitle'],
-            choices: quizMap['choices'],
-            correctAns: quizMap['correctAns'],
-          );
-        }).toList(),
-      );
-      if (_shouldPlay) {
-        // ignore: use_build_context_synchronously
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PlayQuizScreen(
-              quizData: data,
-              quizID: widget.quizID,
-            ),
-          ),
+        CreateQuizDataModel data = CreateQuizDataModel(
+          quizID: widget.quizID,
+          quizDescription: quizDataMap?['quizDescription'],
+          quizTitle: quizDataMap?['quizTitle'],
+          likes: quizDataMap?['likes'],
+          disLikes: quizDataMap?['DisLikes'],
+          views: updatedViews,
+          taken: quizDataMap?['taken'],
+          wins: quizDataMap?['wins'],
+          topScorerImage: quizDataMap?['topScorerImage'],
+          topScorerName: quizDataMap?['topScorerName'],
+          categories: quizDataMap?['categories'],
+          noOfQuestions: quizDataMap?['noOfQuestions'],
+          creatorName: quizDataMap?['creatorName'],
+          creatorImage: quizDataMap?['creatorImage'],
+          shares: quizDataMap?['shares'],
+          timer: quizDataMap?['timer'],
+          visibility: quizDataMap?['visibility'],
+          creatorUserID: quizDataMap?['creatorUserID'],
+          quizzes: quizzesList.map((quizMap) {
+            return Quizzes(
+              questionTitle: quizMap['questionTitle'],
+              choices: quizMap['choices'],
+              correctAns: quizMap['correctAns'],
+            );
+          }).toList(),
         );
-        _shouldPlay = false;
-      }
+        if (_shouldPlay) {
+          // ignore: use_build_context_synchronously
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PlayQuizScreen(
+                quizData: data,
+                quizID: widget.quizID,
+              ),
+            ),
+          );
+          _shouldPlay = false;
+        }
 
-      return data;
-    } catch (e) {
+        return data;
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+      }
+    } else {
+      setState(() {
+        _isQuizDataFound = false;
+      });
       if (kDebugMode) {
-        print(e);
+        print('Quiz data is not available');
       }
     }
-
     return CreateQuizDataModel();
   }
 
@@ -311,6 +310,17 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isQuizDataFound && quizItems.isEmpty) {
+      return Scaffold(
+          appBar: AppBar(
+            title: const Text('Quiz data not found'),
+            backgroundColor: AppColors.primaryColor,
+          ),
+          body: const Center(
+            child: Text("Quiz is deleted or wrong Quiz ID"),
+          ));
+    }
+
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -334,7 +344,9 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: LoadingWidget());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return const Center(
+              child: Text("Quiz is deleted or wrong Quiz ID"),
+            );
           } else {
             final quizData = snapshot.data;
 

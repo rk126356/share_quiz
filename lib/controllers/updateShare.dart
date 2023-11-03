@@ -11,22 +11,14 @@ Future<void> updateShare(quizID, creatorUserID) async {
 
   final bool isShared = sharedQuizSnapshot.docs.isNotEmpty;
 
-  print(isShared);
-
   if (!isShared) {
     await sharedQuizRef.add({
       'quizID': quizID,
     });
 
-    final quizCollection = await firestore
-        .collection('users/$creatorUserID/myQuizzes')
-        .doc(quizID)
-        .get();
+    final quizCollection =
+        await firestore.collection('allQuizzes').doc(quizID).get();
 
-    final quizDataMap = quizCollection.data();
-
-    int currentShare = quizDataMap?['shares'] ?? 0;
-
-    await quizCollection.reference.update({'shares': currentShare + 1});
+    await quizCollection.reference.update({'shares': FieldValue.increment(1)});
   }
 }

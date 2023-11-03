@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
@@ -34,10 +35,51 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
   }
 
   bool isViewsUpdated = false;
+  bool _isLiked = false;
+  bool _isDisliked = false;
+
+  Future<void> checkIfQuizIsLiked() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final likedQuizRef = firestore.collection('users/$uid/myLikedQuizzes');
+
+      final likedQuizSnapshot = await likedQuizRef
+          .where('quizID', isEqualTo: widget.quizData.quizID)
+          .get();
+
+      setState(() {
+        _isLiked = likedQuizSnapshot.docs.isNotEmpty;
+      });
+    }
+  }
+
+  Future<void> checkIfQuizIsDisliked() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final dislikedQuizRef =
+          firestore.collection('users/$uid/myDislikedQuizzes');
+
+      final dislikedQuizSnapshot = await dislikedQuizRef
+          .where('quizID', isEqualTo: widget.quizData.quizID)
+          .get();
+
+      setState(() {
+        _isDisliked = dislikedQuizSnapshot.docs.isNotEmpty;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
+      checkIfQuizIsLiked();
+      checkIfQuizIsDisliked();
       updateViews();
       isViewsUpdated = true;
     }
@@ -54,7 +96,6 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
                 MaterialPageRoute(
                     builder: (context) => InsideQuizScreen(
                           quizID: widget.quizData.quizID!,
-                          creatorUserID: widget.quizData.creatorUserID,
                           isViewsUpdated: isViewsUpdated,
                         )),
               );

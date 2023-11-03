@@ -108,16 +108,14 @@ class _RightPanelState extends State<RightPanel> {
   String? _currentLikes;
 
   Future<void> addLikedQuizToFirebase(String quizID, String categories) async {
-    _isLoading = true;
+    setState(() {
+      _isLoading = true;
+    });
     final firestore = FirebaseFirestore.instance;
 
-    final quizCollection = await firestore
-        .collection('users/${widget.creatorUserID}/myQuizzes')
-        .doc(quizID)
-        .get();
+    final quizCollection =
+        await firestore.collection('allQuizzes').doc(quizID).get();
 
-    checkIfQuizIsLiked();
-    checkIfQuizIsDisliked();
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final uid = user.uid;
@@ -185,7 +183,9 @@ class _RightPanelState extends State<RightPanel> {
     }
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
-    _isLoading = false;
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override

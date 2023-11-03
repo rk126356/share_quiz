@@ -9,7 +9,6 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/colors.dart';
-import 'package:share_quiz/screens/home/search_quiz_screen.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
 import 'package:share_quiz/screens/home/widgets/quiz_desxription_gap.dart';
 import 'package:share_quiz/screens/home/widgets/right_panel.dart';
@@ -35,47 +34,48 @@ class _HomeScreenState extends State<HomeScreen>
     _isLoading = true;
     final firestore = FirebaseFirestore.instance;
     try {
-      final userCollection = await firestore.collection('users').get();
-
       final List<CreateQuizDataModel> newQuizItems = [];
 
-      for (final userDoc in userCollection.docs) {
-        final userId = userDoc.id;
-        final quizCollection = await firestore
-            .collection('users/$userId/myQuizzes')
-            .where('visibility', isEqualTo: 'Public')
+      final quizCollection = await firestore
+          .collection('allQuizzes')
+          .where('visibility', isEqualTo: 'Public')
+          .get();
+
+      for (final quizDoc in quizCollection.docs) {
+        final quizData = quizDoc.data();
+
+        final userCollection = await firestore
+            .collection('users')
+            .doc(quizData['creatorUserID'])
             .get();
 
-        final userData = userDoc.data();
+        final userData = userCollection.data();
 
-        for (final quizDoc in quizCollection.docs) {
-          final quizData = quizDoc.data();
+        final quizItem = CreateQuizDataModel(
+          quizID: quizData['quizID'],
+          creatorName: userData?['displayName'],
+          creatorUsername: userData?['username'],
+          creatorImage: userData?['avatarUrl'],
+          quizDescription: quizData['quizDescription'],
+          quizTitle: quizData['quizTitle'],
+          likes: quizData['likes'],
+          views: quizData['views'],
+          taken: quizData['taken'],
+          wins: quizData['wins'],
+          shares: quizData['shares'],
+          topScorerImage: quizData['topScorerImage'],
+          topScorerName: quizData['topScorerName'],
+          topScorerUid: quizData['topScorerUid'],
+          categories: quizData['categories'],
+          noOfQuestions: quizData['noOfQuestions'],
+          creatorUserID: quizData['creatorUserID'],
+          createdAt: quizData['createdAt'],
+          timer: quizData['timer'],
+        );
 
-          final quizItem = CreateQuizDataModel(
-            quizID: quizData['quizID'],
-            creatorName: userData['displayName'],
-            creatorUsername: userData['username'],
-            creatorImage: userData['avatarUrl'],
-            quizDescription: quizData['quizDescription'],
-            quizTitle: quizData['quizTitle'],
-            likes: quizData['likes'],
-            views: quizData['views'],
-            taken: quizData['taken'],
-            wins: quizData['wins'],
-            shares: quizData['shares'],
-            topScorerImage: quizData['topScorerImage'],
-            topScorerName: quizData['topScorerName'],
-            topScorerUid: quizData['topScorerUid'],
-            categories: quizData['categories'],
-            noOfQuestions: quizData['noOfQuestions'],
-            creatorUserID: quizData['creatorUserID'],
-            createdAt: quizData['createdAt'],
-            timer: quizData['timer'],
-          );
-
-          newQuizItems.add(quizItem);
-        }
+        newQuizItems.add(quizItem);
       }
+
       final random = Random();
       newQuizItems.shuffle(random);
 
@@ -168,6 +168,46 @@ class _HomeScreenState extends State<HomeScreen>
 
   bool isUserChecked = false;
 
+  final TextEditingController _searchController = TextEditingController();
+
+  // Function to handle search button press
+  void onSearchButtonPressed() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Search by Quiz Code'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  labelText: 'Enter your Quiz Code',
+                  helperText: 'Ex: 61dc8dfe',
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  String searchText = _searchController.text;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => InsideQuizScreen(
+                              quizID: searchText,
+                            )),
+                  );
+                },
+                child: const Text('Start Quiz'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
@@ -190,20 +230,14 @@ class _HomeScreenState extends State<HomeScreen>
                 Row(
                   children: [
                     IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const SearchQuizScreen()),
-                          );
-                        },
+                        onPressed: onSearchButtonPressed,
                         icon: const Icon(CupertinoIcons.search)),
                     IconButton(
                         onPressed: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const SearchQuizScreen()),
+                                builder: (context) => const HomeScreen()),
                           );
                         },
                         icon: const Icon(CupertinoIcons.refresh)),
@@ -232,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen>
               Row(
                 children: [
                   IconButton(
-                      onPressed: () {},
+                      onPressed: onSearchButtonPressed,
                       icon: const Icon(CupertinoIcons.search)),
                   IconButton(
                       onPressed: () {
@@ -391,8 +425,6 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                             builder: (context) =>
                                                 InsideQuizScreen(
                                                   quizID: widget.quizID!,
-                                                  creatorUserID:
-                                                      widget.creatorUserID,
                                                   isViewsUpdated:
                                                       isViewsUpdated,
                                                 )),
@@ -435,8 +467,6 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                             builder: (context) =>
                                                 InsideQuizScreen(
                                                   isQuickPlay: true,
-                                                  creatorUserID:
-                                                      widget.creatorUserID,
                                                   quizID: widget.quizID!,
                                                   isViewsUpdated:
                                                       isViewsUpdated,

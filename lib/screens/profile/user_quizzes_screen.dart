@@ -1,11 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
-import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
-import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
 class UserQuizzesScreen extends StatefulWidget {
@@ -27,8 +24,8 @@ class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
     quizItems.clear();
 
     final quizCollection = await firestore
-        .collection('users/${widget.uid}/myQuizzes')
-        .orderBy('createdAt', descending: true)
+        .collection('allQuizzes')
+        .where('creatorUserID', isEqualTo: widget.uid)
         .get();
 
     for (final quizDoc in quizCollection.docs) {

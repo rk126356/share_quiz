@@ -14,31 +14,28 @@ class RecommendedQuizTab extends StatelessWidget {
   Future<void> fetchQuizzes() async {
     final firestore = FirebaseFirestore.instance;
 
-    final userCollection = await firestore.collection('users').get();
+    final quizCollection = await firestore
+        .collection('allQuizzes')
+        .where('visibility', isEqualTo: 'Public')
+        .get();
 
-    for (final userDoc in userCollection.docs) {
-      final userId = userDoc.id;
-      final quizCollection =
-          await firestore.collection('users/$userId/myQuizzes').get();
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorImage: quizData['creatorImage'],
+        creatorName: quizData['creatorName'],
+        creatorUserID: quizData['creatorUserID'],
+      );
 
-      for (final quizDoc in quizCollection.docs) {
-        final quizData = quizDoc.data();
-        final quizItem = CreateQuizDataModel(
-          quizID: quizData['quizID'],
-          quizDescription: quizData['quizDescription'],
-          quizTitle: quizData['quizTitle'],
-          likes: quizData['likes'],
-          views: quizData['views'],
-          taken: quizData['taken'],
-          categories: quizData['categories'],
-          noOfQuestions: quizData['noOfQuestions'],
-          creatorImage: quizData['creatorImage'],
-          creatorName: quizData['creatorName'],
-          creatorUserID: quizData['creatorUserID'],
-        );
-
-        quizItems.add(quizItem);
-      }
+      quizItems.add(quizItem);
     }
   }
 

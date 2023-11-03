@@ -31,9 +31,8 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
     var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    final quizCollection = firestore
-        .collection('users/${widget.quizData.creatorUserID}/myQuizzes')
-        .doc(widget.quizID);
+    final quizCollection =
+        firestore.collection('allQuizzes').doc(widget.quizID);
 
     await quizCollection.update({
       'taken': FieldValue.increment(1),

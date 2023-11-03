@@ -393,9 +393,7 @@ class _CreateScreenState extends State<CreateScreen> {
       quizData.noOfQuestions = previewQuestions.length;
       quizData.difficulty = quizData.difficulty ?? 'Medium';
       await _firestore
-          .collection('users')
-          .doc(data.userData.uid)
-          .collection('myQuizzes')
+          .collection('allQuizzes')
           .doc(quizData.quizID)
           .set(quizData.toJson());
 

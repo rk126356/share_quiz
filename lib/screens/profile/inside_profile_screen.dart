@@ -31,8 +31,10 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
 
     quizItems.clear();
 
-    final quizCollection =
-        await firestore.collection('users/$userId/myQuizzes').get();
+    final quizCollection = await firestore
+        .collection('allQuizzes')
+        .where('creatorUserID', isEqualTo: userId)
+        .get();
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();

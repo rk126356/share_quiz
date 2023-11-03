@@ -24,8 +24,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     quizItems.clear();
 
     final quizCollection = await firestore
-        .collection('users/${data.userData.uid}/myQuizzes')
-        .orderBy('createdAt', descending: true)
+        .collection('allQuizzes')
+        .where('creatorUserID', isEqualTo: data.userData.uid)
         .get();
 
     for (final quizDoc in quizCollection.docs) {
@@ -51,12 +51,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
   Future<void> deleteQuiz(String quizID) async {
     final firestore = FirebaseFirestore.instance;
-    var data = Provider.of<UserProvider>(context, listen: false);
 
-    await firestore
-        .collection('users/${data.userData.uid}/myQuizzes')
-        .doc(quizID)
-        .delete();
+    await firestore.collection('allQuizzes').doc(quizID).delete();
 
     setState(() {
       // Remove the deleted quiz from the list.
