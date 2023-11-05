@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 

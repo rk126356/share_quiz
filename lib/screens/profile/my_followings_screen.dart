@@ -84,9 +84,7 @@ class _MyFollowingsScreenState extends State<MyFollowingsScreen> {
         doc.reference.delete();
       }
     });
-    data.setUserData(UserModel(
-      noOfFollowings: data.userData.noOfFollowings! - 1,
-    ));
+
     await firestore
         .collection('users')
         .doc(data.userData.uid)

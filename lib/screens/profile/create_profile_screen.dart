@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
@@ -28,6 +33,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   TextEditingController email = TextEditingController();
   TextEditingController phoneNumber = TextEditingController();
   TextEditingController gender = TextEditingController();
+  final TextEditingController controller = TextEditingController();
+  String userImage =
+      'https://as1.ftcdn.net/v2/jpg/02/59/39/46/1000_F_259394679_GGA8JJAEkukYJL9XXFH2JoC3nMguBPNH.jpg';
+  XFile? pickedImage;
+
+  String initialCountry = 'IN';
+  PhoneNumber number = PhoneNumber(isoCode: 'IN');
 
   bool? _isLoading = false;
 
@@ -52,6 +64,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           phoneNumber.text = userData['phoneNumber'] ?? '';
           dobController.text = userData['dob'] ?? '';
           gender.text = userData['gender'] ?? '';
+          userImage = userData['avatarUrl'] ?? '';
         });
 
         data.setUserData(UserModel(
@@ -79,7 +92,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   Future<void> saveUserData(context) async {
     try {
       // Show a loading indicator.
-      _isLoading = true;
+      setState(() {
+        _isLoading = true;
+      });
 
       final firestore = FirebaseFirestore.instance;
       var data = Provider.of<UserProvider>(context, listen: false);
@@ -118,6 +133,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               },
             );
           } else {
+            String? avatarUrl = pickedImage != null
+                ? await uploadImageToStorage(pickedImage)
+                : userImage;
+
             // Update user data.
             await userDoc.update({
               'username': username.text,
@@ -126,6 +145,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               'phoneNumber': phoneNumber.text,
               'dob': dobController.text,
               'gender': gender.text,
+              'avatarUrl': avatarUrl,
             });
 
             // Update the user data in the Provider.
@@ -137,6 +157,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               phoneNumber: phoneNumber.text,
               dob: dobController.text,
               gender: gender.text,
+              avatarUrl: avatarUrl,
             ));
 
             // Navigate based on whether it's an edit or a new user.
@@ -153,6 +174,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             }
           }
         } else {
+          String? avatarUrl = pickedImage != null
+              ? await uploadImageToStorage(pickedImage)
+              : userImage;
+
           // Update user data.
           await userDoc.update({
             'displayName': fullName.text,
@@ -160,6 +185,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             'phoneNumber': phoneNumber.text,
             'dob': dobController.text,
             'gender': gender.text,
+            'avatarUrl': avatarUrl,
           });
 
           // Update the user data in the Provider.
@@ -170,6 +196,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             phoneNumber: phoneNumber.text,
             dob: dobController.text,
             gender: gender.text,
+            avatarUrl: avatarUrl,
           ));
 
           // Navigate based on whether it's an edit or a new user.
@@ -185,6 +212,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             );
           }
         }
+        data.setIsBioAdded(true);
       } else {
         // Handle the case when the user document does not exist.
         if (kDebugMode) {
@@ -198,7 +226,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       }
     } finally {
       // Hide the loading indicator.
-      _isLoading = false;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -209,11 +239,46 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     fetchUser();
   }
 
+  pickImage() async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      setState(() {
+        pickedImage = pickedFile!;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error picking an image: $e");
+      }
+    }
+  }
+
+  Future<String?> uploadImageToStorage(XFile? imageFile) async {
+    if (imageFile == null) {
+      return null;
+    }
+
+    final Reference storageReference = FirebaseStorage.instance
+        .ref()
+        .child("images/${DateTime.now().millisecondsSinceEpoch}.jpg");
+    try {
+      await storageReference.putFile(File(imageFile.path));
+      final String downloadURL = await storageReference.getDownloadURL();
+      return downloadURL;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error uploading image to storage: $e");
+      }
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading!) {
       return const Scaffold(body: LoadingWidget());
     }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -224,18 +289,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ),
         ),
         backgroundColor: AppColors.primaryColor, // App bar background color
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.check,
-              color: Colors.white, // Checkmark icon color
-              size: 30.0, // Checkmark icon size
-            ),
-            onPressed: () {
-              // Handle profile creation logic here
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -260,11 +313,20 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         width: 5.0,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      size: 60.0,
-                      color: Colors.white,
-                    ),
+                    child: ClipOval(
+                        child: pickedImage == null
+                            ? Image.network(
+                                userImage,
+                                width: 125,
+                                height: 125,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                pickedImage!.path,
+                                width: 125,
+                                height: 125,
+                                fit: BoxFit.cover,
+                              )),
                   ),
                   Positioned(
                     bottom: 0,
@@ -283,7 +345,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         ),
                       ),
                       onTap: () {
-                        // Implement image editing logic here
+                        pickImage();
                       },
                     ),
                   ),
@@ -345,29 +407,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         return null; // No error
                       },
                     ),
-                    TextFormField(
-                      controller: phoneNumber,
-                      decoration: const InputDecoration(
-                        hintText: 'Include country code ex: +91',
-                        labelText: 'Phone Number',
-                        prefixIcon: Icon(CupertinoIcons.phone,
-                            color: AppColors.primaryColor),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Phone number is required';
-                        }
-
-                        if (!value.startsWith('+')) {
-                          return 'Please include country code ex: "+91"';
-                        }
-
-                        // You can add additional validation here if needed.
-
-                        return null; // No error
-                      },
-                    ),
                     const SizedBox(height: 10),
                     GestureDetector(
                       onTap: () {
@@ -423,6 +462,46 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         labelText: 'Gender',
                         prefixIcon: Icon(CupertinoIcons.person_fill,
                             color: AppColors.primaryColor), // Icon color
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12),
+                      child: InternationalPhoneNumberInput(
+                        onInputChanged: (PhoneNumber number) {
+                          if (kDebugMode) {
+                            print(number.phoneNumber);
+                          }
+                        },
+                        onInputValidated: (bool value) {
+                          if (kDebugMode) {
+                            print(value);
+                          }
+                        },
+                        validator: (value) {
+                          if (value!.length < 5) {
+                            return 'Phone number is required';
+                          }
+
+                          return null; // No error
+                        },
+                        selectorConfig: const SelectorConfig(
+                          selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+                        ),
+                        ignoreBlank: false,
+                        autoValidateMode: AutovalidateMode.disabled,
+                        selectorTextStyle: const TextStyle(color: Colors.black),
+                        initialValue: number,
+                        textFieldController: phoneNumber,
+                        formatInput: true,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            signed: true, decimal: true),
+                        inputBorder: const OutlineInputBorder(),
+                        onSaved: (PhoneNumber number) {
+                          if (kDebugMode) {
+                            print('On Saved: $number');
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(height: 20),

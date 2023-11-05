@@ -9,13 +9,15 @@ import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
+import 'package:share_quiz/widgets/loading_widget.dart';
 
 class InsideQuizScoreBoardScreen extends StatefulWidget {
   final CreateQuizDataModel quizData;
   final int? score;
+  final int? noOfAttempts;
 
   const InsideQuizScoreBoardScreen(
-      {Key? key, required this.quizData, this.score})
+      {Key? key, required this.quizData, this.score, this.noOfAttempts})
       : super(key: key);
 
   @override
@@ -25,16 +27,20 @@ class InsideQuizScoreBoardScreen extends StatefulWidget {
 
 class _InsideQuizScoreBoardScreenState
     extends State<InsideQuizScoreBoardScreen> {
-  Future<List<Score>>? scores;
+  List<Score> scores = [];
   List<Score> myScores = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    scores = fetchScores();
+    fetchScores();
   }
 
-  Future<List<Score>> fetchScores() async {
+  fetchScores() async {
+    setState(() {
+      _isLoading = true;
+    });
     var userDataProvider =
         Provider.of<UserProvider>(context, listen: false).userData;
     final firestore = FirebaseFirestore.instance;
@@ -109,9 +115,11 @@ class _InsideQuizScoreBoardScreenState
             }
           });
 
-          myScores = myLoadedScores;
-
-          return loadedScores;
+          setState(() {
+            myScores = myLoadedScores;
+            scores = loadedScores;
+            _isLoading = false;
+          });
         } catch (e) {
           if (kDebugMode) {
             print(e);
@@ -119,179 +127,195 @@ class _InsideQuizScoreBoardScreenState
         }
       }
     }
-    return [];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        title: const Text('Scoreboard'),
-      ),
-      body: FutureBuilder<List<Score>>(
-        future: scores,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No scores available.'));
-          } else {
-            return ListView(
-              children: [
-                if (widget.score != null)
-                  Center(
-                    child: Container(
-                      // Styling for the timer box
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 3,
-                            offset: const Offset(0, 2),
+    return DefaultTabController(
+      length: 2, // Number of tabs
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryColor,
+          title: const Text('Scoreboard'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'My Scores'),
+              Tab(text: 'All Scores'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _isLoading
+                ? const LoadingWidget()
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        if (widget.score != null)
+                          Center(
+                            child: Container(
+                              // Styling for the timer box
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.blue,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                'Attempt: ${widget.noOfAttempts} | Correct Answer: ${widget.score}/${widget.quizData.noOfQuestions}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: CupertinoColors.activeBlue,
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'Your Correct Answer: ${widget.score}/${widget.quizData.noOfQuestions}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: CupertinoColors.activeBlue,
+                        ListView.builder(
+                          physics:
+                              const BouncingScrollPhysics(), // Enable scrolling
+                          shrinkWrap: true,
+                          itemCount: myScores.length,
+                          itemBuilder: (context, index) {
+                            final myScore = myScores[index];
+                            return Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage:
+                                      NetworkImage(myScore.playerImage),
+                                ),
+                                title: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      myScore.playerName,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    Text('Time: ${myScore.timeTaken} sec'),
+                                  ],
+                                ),
+                                subtitle: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                        'Score: ${myScore.playerScore}/${myScore.noOfQuestions}'),
+                                    Text('Attempt: ${myScore.attemptNo + 1}'),
+                                    Text(
+                                        'Date: ${DateFormat('yyyy-MM-dd').format(myScore.timestamp.toDate())}'),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => InsideProfileScreen(
+                                        userId: myScore.playerUid,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
-                      ),
+                        const SizedBox(
+                          height: 20,
+                        )
+                      ],
                     ),
                   ),
-                ExpansionTile(
-                  initiallyExpanded: widget.score != null ? true : false,
-                  title: const Text('My Scores'),
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: myScores.length,
-                      itemBuilder: (context, index) {
-                        final myScore = myScores[index];
-                        return Card(
-                          elevation: 4,
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage:
-                                  NetworkImage(myScore.playerImage),
-                            ),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  myScore.playerName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
+            _isLoading
+                ? const LoadingWidget()
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListView.builder(
+                          physics:
+                              const BouncingScrollPhysics(), // Enable scrolling
+                          shrinkWrap: true,
+                          itemCount: scores!.length!,
+                          itemBuilder: (context, index) {
+                            final score = scores![index];
+                            return Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage:
+                                      NetworkImage(score.playerImage),
                                 ),
-                                Text('Time Taken: ${myScore.timeTaken} sec'),
-                              ],
-                            ),
-                            subtitle: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                    'Score: ${myScore.playerScore}/${myScore.noOfQuestions}'),
-                                Text('Attempt: ${myScore.attemptNo + 1}'),
-                                Text(
-                                    'Date: ${DateFormat('yyyy-MM-dd').format(myScore.timestamp.toDate())}'),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => InsideProfileScreen(
-                                          userId: myScore.playerUid,
-                                        )),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                ExpansionTile(
-                  initiallyExpanded: widget.score != null ? false : true,
-                  title: const Text('All Scores'),
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final score = snapshot.data![index];
-                        return Card(
-                          elevation: 4,
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(score.playerImage),
-                            ),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  score.playerName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
+                                title: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      score.playerName,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    Text('Time: ${score.timeTaken} sec'),
+                                  ],
                                 ),
-                                Text('Time Taken: ${score.timeTaken} sec'),
-                              ],
-                            ),
-                            subtitle: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                    'Score: ${score.playerScore}/${score.noOfQuestions}'),
-                                Text('Attempt: ${score.attemptNo + 1}'),
-                                Text(
-                                    'Date: ${DateFormat('yyyy-MM-dd').format(score.timestamp.toDate())}'),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => InsideProfileScreen(
-                                          userId: score.playerUid,
-                                        )),
-                              );
-                            },
-                          ),
-                        );
-                      },
+                                subtitle: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                        'Score: ${score.playerScore}/${score.noOfQuestions}'),
+                                    Text('Attempt: ${score.attemptNo + 1}'),
+                                    Text(
+                                        'Date: ${DateFormat('yyyy-MM-dd').format(score.timestamp.toDate())}'),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => InsideProfileScreen(
+                                        userId: score.playerUid,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        )
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            );
-          }
-        },
+                  ),
+          ],
+        ),
       ),
     );
   }

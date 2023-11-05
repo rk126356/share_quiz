@@ -231,6 +231,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
   }
 
   addFollowing() async {
+    checkIfFollowing();
     setState(() {
       _isLoadingFollow = true;
     });
@@ -242,6 +243,8 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
       final followingRef = firestore.collection('users/$uid/myFollowings');
       final otherUserRef =
           firestore.collection('users/${widget.user.uid}/myFollowers');
+      final followingRefData = await followingRef.get();
+      final otherUserRefData = await otherUserRef.get();
 
       final followingSnapshot =
           await followingRef.where('userID', isEqualTo: widget.user.uid).get();
@@ -252,7 +255,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
         setState(() {
           _isFollowing = true;
           _isLoadingFollow = false;
-          widget.user.noOfFollowers = widget.user.noOfFollowers! + 1;
+          widget.user.noOfFollowers = otherUserRefData.docs.length + 1;
         });
 
         await followingRef.add({
@@ -265,19 +268,20 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
           'myUserID': widget.user.uid,
           'createdAt': Timestamp.now(),
         });
+
         await firestore
             .collection('users')
             .doc(widget.user.uid)
-            .update({'noOfFollowers': FieldValue.increment(1)});
+            .update({'noOfFollowers': followingRefData.docs.length + 1});
         await firestore
             .collection('users')
             .doc(user.uid)
-            .update({'noOfFollowings': FieldValue.increment(1)});
+            .update({'noOfFollowings': otherUserRefData.docs.length + 1});
       } else {
         setState(() {
           _isFollowing = false;
           _isLoadingFollow = false;
-          widget.user.noOfFollowers = widget.user.noOfFollowers! - 1;
+          widget.user.noOfFollowers = otherUserRefData.docs.length - 1;
         });
 
         for (final doc in followingSnapshot.docs) {
@@ -289,11 +293,11 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
         await firestore
             .collection('users')
             .doc(widget.user.uid)
-            .update({'noOfFollowers': FieldValue.increment(-1)});
+            .update({'noOfFollowers': followingRefData.docs.length - 1});
         await firestore
             .collection('users')
             .doc(user.uid)
-            .update({'noOfFollowings': FieldValue.increment(-1)});
+            .update({'noOfFollowings': otherUserRefData.docs.length - 1});
       }
     }
   }

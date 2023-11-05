@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
 import 'package:share_quiz/screens/home/widgets/quiz_desxription_gap.dart';
 import 'package:share_quiz/screens/home/widgets/right_panel.dart';
+import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -210,12 +212,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-    // if (!isUserChecked) {
-    //   checkUser(data.userData, context);
-    //   isUserChecked = true;
-    // }
-
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
@@ -225,13 +221,22 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text("ShareQuiz"),
+                CachedNetworkImage(
+                  imageUrl:
+                      'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2Fezgif-4-e8a7f6764c.gif?alt=media&token=1e048c6a-74cd-4d44-bb79-90671ecc20f9',
+                  placeholder: (context, url) =>
+                      const CircularProgressIndicator(), // Placeholder widget while loading
+                  errorWidget: (context, url, error) =>
+                      const Icon(Icons.error), // Widget to display on error
+                  fadeInDuration: const Duration(
+                      milliseconds: 200), // Duration for the image to fade in
+                ),
                 const Center(child: HeaderHomePage()),
                 Row(
                   children: [
                     IconButton(
                         onPressed: onSearchButtonPressed,
-                        icon: const Icon(CupertinoIcons.search)),
+                        icon: const Icon(CupertinoIcons.refresh)),
                     IconButton(
                         onPressed: () {
                           Navigator.pushReplacement(
@@ -253,6 +258,7 @@ class _HomeScreenState extends State<HomeScreen>
         body: const LoadingWidget(),
       );
     }
+
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -261,9 +267,19 @@ class _HomeScreenState extends State<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text("ShareQuiz"),
+              CachedNetworkImage(
+                imageUrl:
+                    'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2Fezgif-4-e8a7f6764c.gif?alt=media&token=1e048c6a-74cd-4d44-bb79-90671ecc20f9',
+                placeholder: (context, url) =>
+                    const CircularProgressIndicator(), // Placeholder widget while loading
+                errorWidget: (context, url, error) =>
+                    const Icon(Icons.error), // Widget to display on error
+                fadeInDuration: const Duration(
+                    milliseconds: 200), // Duration for the image to fade in
+              ),
               const Center(child: HeaderHomePage()),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
                       onPressed: onSearchButtonPressed,

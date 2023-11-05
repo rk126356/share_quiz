@@ -126,7 +126,10 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => InsideQuizScoreBoardScreen(
-              score: score, quizData: widget.quizData), // Pass the score
+            score: score,
+            quizData: widget.quizData,
+            noOfAttempts: noOfAttempts! + 1,
+          ), // Pass the score
         ),
       );
     }

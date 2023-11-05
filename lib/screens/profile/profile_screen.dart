@@ -371,6 +371,20 @@ class _QuickLinks extends StatelessWidget {
             await preferences.clear();
           },
         ),
+        ListTile(
+          leading: const Icon(CupertinoIcons.exclamationmark,
+              color: AppColors.primaryColor),
+          title: const Text("Clear Data"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () async {
+            SharedPreferences preferences =
+                await SharedPreferences.getInstance();
+            await preferences.clear();
+          },
+        ),
         const SizedBox(
           height: 30,
         )
