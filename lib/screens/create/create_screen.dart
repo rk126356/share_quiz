@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
@@ -365,10 +366,10 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   saveQuiz(data) async {
-    if (quizData.quizTitle!.isNotEmpty &&
-        quizData.quizDescription!.isNotEmpty &&
+    if (quizData.quizTitle != null &&
+        quizData.quizDescription != null &&
         previewQuestions.length > 1 &&
-        quizData.categories!.isNotEmpty) {
+        quizData.categories != null) {
       setState(() {
         _isLoading = true;
       });
@@ -397,10 +398,9 @@ class _CreateScreenState extends State<CreateScreen> {
           .doc(quizData.quizID)
           .set(quizData.toJson());
 
-      final userCollection =
-          await _firestore.collection('users').doc(data.userData.uid).get();
-
-      await userCollection.reference
+      await _firestore
+          .collection('users')
+          .doc(data.userData.uid)
           .update({'noOfQuizzes': FieldValue.increment(1)});
 
       previewQuestions.clear();

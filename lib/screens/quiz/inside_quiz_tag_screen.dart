@@ -23,7 +23,9 @@ class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
 
     final quizCollection = await firestore
         .collection('allQuizzes')
-        .where('categories', arrayContainsAny: [widget.tag]).get();
+        .where('categories', arrayContainsAny: [widget.tag])
+        .where('visibility', isEqualTo: 'Public')
+        .get();
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();

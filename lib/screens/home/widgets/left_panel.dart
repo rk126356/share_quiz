@@ -46,18 +46,25 @@ class LeftPanel extends StatelessWidget {
                         )),
               );
             },
-            child: Column(
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(color: white, fontSize: 20),
-                ),
-                Text(
-                  '@$username',
-                  style: const TextStyle(color: white, fontSize: 12),
-                ),
-              ],
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => InsideProfileScreen(
+                            userId: creatorUserID,
+                          )),
+                );
+              },
+              child: Text(
+                name,
+                style: const TextStyle(color: white, fontSize: 20),
+              ),
             ),
+          ),
+          Text(
+            '@$username',
+            style: const TextStyle(color: white, fontSize: 12),
           ),
           const SizedBox(height: 10),
           Row(

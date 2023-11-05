@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -6,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
+import 'package:share_quiz/screens/profile/my_followers_screen.dart';
+import 'package:share_quiz/screens/profile/my_followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,6 +54,7 @@ class _HeaderBackground extends StatelessWidget {
 class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var user = FirebaseAuth.instance.currentUser;
     var data = Provider.of<UserProvider>(context, listen: false);
 
     return Center(
@@ -75,7 +79,7 @@ class _ProfileAvatar extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   radius: 56,
-                  backgroundImage: NetworkImage(data.userData.avatarUrl!),
+                  backgroundImage: NetworkImage(data.userData.avatarUrl ?? ''),
                 ),
               ),
               CircleAvatar(
@@ -100,7 +104,7 @@ class _ProfileAvatar extends StatelessWidget {
               ),
             ],
           ),
-          _ProfileInfo(),
+          _ProfileInfo(user: user!),
         ],
       ),
     );
@@ -108,54 +112,123 @@ class _ProfileAvatar extends StatelessWidget {
 }
 
 class _ProfileInfo extends StatelessWidget {
+  final User user;
+
+  _ProfileInfo({required this.user});
+
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Text(
-            data.userData.name!,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return CircularProgressIndicator();
+        }
+
+        var userData = snapshot.data?.data() as Map<String, dynamic>;
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text(
+                userData['displayName'] ?? '',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '@${userData['username']}' ?? '',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                userData['bio'] ?? 'No bio available',
+                style: const TextStyle(fontSize: 18, color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              _ProfileStats(user: user),
+            ],
           ),
-          Text(
-            '@${data.userData.username}' ?? '@supersuper785',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            data.userData.bio ??
-                'Front-end Developer with a passion for coding and design. Love creating beautiful.',
-            style: const TextStyle(fontSize: 18, color: Colors.white70),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          _ProfileStats(),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _ProfileStats extends StatelessWidget {
+  final User user;
+
+  _ProfileStats({required this.user});
+
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _StatItem("Quizzes", "20"),
-        _StatItem("Followers", "120"),
-        _StatItem("Following", "200"),
-      ],
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return CircularProgressIndicator();
+        }
+
+        var userData = snapshot.data?.data() as Map<String, dynamic>;
+        var followers = userData['noOfFollowers'] ?? 0;
+        var quizzes = userData['noOfQuizzes'] ?? 0;
+        var followings = userData['noOfFollowings'] ?? 0;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyQuizzesScreen(),
+                  ),
+                );
+              },
+              child: _StatItem("Quizzes", quizzes.toString()),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyFollowersScreen(),
+                  ),
+                );
+              },
+              child: _StatItem("Followers", followers.toString()),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyFollowingsScreen(),
+                  ),
+                );
+              },
+              child: _StatItem("Following", followings.toString()),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -205,9 +278,10 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CreateProfileScreen(
-                        isEdit: true,
-                      )),
+                builder: (context) => const CreateProfileScreen(
+                  isEdit: true,
+                ),
+              ),
             );
           },
         ),
@@ -238,9 +312,10 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CreateProfileScreen(
-                        isEdit: true,
-                      )),
+                builder: (context) => const CreateProfileScreen(
+                  isEdit: true,
+                ),
+              ),
             );
           },
         ),

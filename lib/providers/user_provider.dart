@@ -9,6 +9,9 @@ class UserProvider extends ChangeNotifier {
       //     'https://lh3.googleusercontent.com/a/ACg8ocIMy4Ub0gQghVTQOBgRvZzg8fgOjYRilIIv3dIzSZpFKw=s96-c',
       // name: 'SuperSuper Gaming',
       // email: 'rsk126356@gmail.com',
+      // noOfQuizzes: 1,
+      // noOfFollowers: 0,
+      // noOfFollowings: 0,
       );
   bool _isFirstLaunch = true;
   bool _isNewOpen = true;
@@ -46,6 +49,7 @@ class UserProvider extends ChangeNotifier {
       dob: user.dob ?? _userData.dob,
       language: user.language ?? _userData.language,
     );
+    notifyListeners();
   }
 
   Future<void> _initializeDataFromPrefs() async {

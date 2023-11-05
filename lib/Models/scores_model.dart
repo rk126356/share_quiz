@@ -9,6 +9,7 @@ class Score {
   final String playerName;
   final String playerImage;
   final int noOfQuestions;
+  int attemptNo;
 
   Score({
     required this.playerUid,
@@ -18,5 +19,6 @@ class Score {
     required this.playerName,
     required this.playerImage,
     required this.noOfQuestions,
+    required this.attemptNo,
   });
 }

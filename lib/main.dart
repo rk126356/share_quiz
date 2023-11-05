@@ -47,9 +47,6 @@ class MyApp extends StatelessWidget {
         avatarUrl: userData?['avatarUrl'],
         username: userData?['username'],
         email: userData?['email'],
-        noOfFollowers: userData?['noOfFollowers'],
-        noOfFollowings: userData?['noOfFollowings'],
-        noOfQuizzes: userData?['noOfQuizzes'],
       ));
       if (userData!.containsKey('bio') &&
           userData['bio'] != null &&

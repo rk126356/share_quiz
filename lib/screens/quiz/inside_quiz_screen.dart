@@ -383,6 +383,92 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                           ),
                         ),
                       ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: CupertinoColors.activeBlue,
+                                borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(4)),
+                              ),
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PlayQuizScreen(
+                                        quizData: quizData!,
+                                        quizID: widget.quizID,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.all(15),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.play_arrow,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text(
+                                      'PLAY QUIZ',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: CupertinoColors.activeGreen,
+                                borderRadius: BorderRadius.only(
+                                    bottomRight: Radius.circular(4)),
+                              ),
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          InsideQuizScoreBoardScreen(
+                                        quizData: quizData!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.all(15),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.chart_bar_square,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text(
+                                      'SCOREBOARD',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ),
@@ -406,27 +492,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                         title: 'ID: ${widget.quizID}',
                         icon: const Icon(
                           Icons.content_copy,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayQuizScreen(
-                                quizData: quizData!,
-                                quizID: widget.quizID,
-                              ),
-                            ),
-                          );
-                        },
-                        title: 'PLAY',
-                        icon: const Icon(
-                          CupertinoIcons.play_arrow,
                           color: Colors.white,
                         ),
                       ),
@@ -457,26 +522,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                           _isDisliked
                               ? CupertinoIcons.hand_thumbsdown_fill
                               : CupertinoIcons.hand_thumbsdown,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => InsideQuizScoreBoardScreen(
-                                quizData: quizData!,
-                              ),
-                            ),
-                          );
-                        },
-                        title: 'Scoreboard',
-                        icon: const Icon(
-                          CupertinoIcons.chart_bar_square,
                           color: Colors.white,
                         ),
                       ),

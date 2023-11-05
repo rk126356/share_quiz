@@ -22,7 +22,10 @@ class _ALlTagsScreenState extends State<ALlTagsScreen> {
 
     tagItems.clear();
 
-    final quizCollection = await firestore.collection('allQuizzes').get();
+    final quizCollection = await firestore
+        .collection('allQuizzes')
+        .where('visibility', isEqualTo: 'Public')
+        .get();
 
     for (final tagDoc in quizCollection.docs) {
       final tagData = tagDoc.data();

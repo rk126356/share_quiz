@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
@@ -26,6 +28,54 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   Timer? timeTaken;
   late int secondsRemaining;
   int secondsTotal = 0;
+  int? noOfAttempts;
+
+  fetchScores() async {
+    var userDataProvider =
+        Provider.of<UserProvider>(context, listen: false).userData;
+    final firestore = FirebaseFirestore.instance;
+    final document = await firestore
+        .collection('allQuizzes')
+        .doc(widget.quizData.quizID)
+        .get();
+
+    if (document.exists) {
+      final data = document.data();
+      if (data != null && data.containsKey('scores')) {
+        try {
+          final scoresData = data['scores'] as List<dynamic>;
+
+          final loadedScores = await Future.wait(scoresData.map((score) async {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(score['playerUid'])
+                .get();
+
+            final userData = userDoc.data();
+
+            if (userDataProvider.uid == score['playerUid']) {
+              return Score(
+                  playerUid: score['playerUid'] ?? '',
+                  playerName: userData?['displayName'],
+                  playerImage: userData?['avatarUrl'],
+                  playerScore: score['playerScore'] ?? 0,
+                  timestamp: score['timestamp'],
+                  timeTaken: score['timeTaken'] ?? 0,
+                  noOfQuestions: score['noOfQuestions'] ?? 0,
+                  attemptNo: score['attemptNo'] ?? 0);
+            }
+          }).toList());
+
+          noOfAttempts = loadedScores.length;
+        } catch (e) {
+          if (kDebugMode) {
+            print(e);
+          }
+        }
+      }
+    }
+    return [];
+  }
 
   void updatePlays() async {
     var data = Provider.of<UserProvider>(context, listen: false);
@@ -43,6 +93,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
           'timestamp': DateTime.now(),
           'timeTaken': secondsTotal,
           'noOfQuestions': widget.quizData.noOfQuestions,
+          'attemptNo': noOfAttempts ?? 0,
         },
       ]),
     });
@@ -117,7 +168,6 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   startTimeTaken() {
     timeTaken = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       secondsTotal++;
-      print(secondsTotal);
     });
   }
 
@@ -136,6 +186,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   void initState() {
     super.initState();
     startTimeTaken();
+    fetchScores();
     if (widget.quizData.timer != 999) {
       startTimer();
     }

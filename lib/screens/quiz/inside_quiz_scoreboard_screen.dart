@@ -51,7 +51,7 @@ class _InsideQuizScoreBoardScreenState
         try {
           final scoresData = data['scores'] as List<dynamic>;
 
-          final List<Score> myLoadedSxores = [];
+          final List<Score> myLoadedScores = [];
 
           final loadedScores = await Future.wait(scoresData.map((score) async {
             final userDoc = await FirebaseFirestore.instance
@@ -62,7 +62,18 @@ class _InsideQuizScoreBoardScreenState
             final userData = userDoc.data();
 
             if (userDataProvider.uid == score['playerUid']) {
-              myLoadedSxores.add(Score(
+              myLoadedScores.add(Score(
+                  playerUid: score['playerUid'] ?? '',
+                  playerName: userData?['displayName'],
+                  playerImage: userData?['avatarUrl'],
+                  playerScore: score['playerScore'] ?? 0,
+                  timestamp: score['timestamp'],
+                  timeTaken: score['timeTaken'] ?? 0,
+                  noOfQuestions: score['noOfQuestions'] ?? 0,
+                  attemptNo: score['attemptNo'] ?? 0));
+            }
+
+            return Score(
                 playerUid: score['playerUid'] ?? '',
                 playerName: userData?['displayName'],
                 playerImage: userData?['avatarUrl'],
@@ -70,18 +81,7 @@ class _InsideQuizScoreBoardScreenState
                 timestamp: score['timestamp'],
                 timeTaken: score['timeTaken'] ?? 0,
                 noOfQuestions: score['noOfQuestions'] ?? 0,
-              ));
-            }
-
-            return Score(
-              playerUid: score['playerUid'] ?? '',
-              playerName: userData?['displayName'],
-              playerImage: userData?['avatarUrl'],
-              playerScore: score['playerScore'] ?? 0,
-              timestamp: score['timestamp'],
-              timeTaken: score['timeTaken'] ?? 0,
-              noOfQuestions: score['noOfQuestions'] ?? 0,
-            );
+                attemptNo: score['attemptNo'] ?? 0);
           }).toList());
 
           // Sort the loadedScores list by playerScore (in descending order) and timeTaken (in ascending order)
@@ -100,7 +100,7 @@ class _InsideQuizScoreBoardScreenState
             'topScorerUid': loadedScores.first.playerUid,
           });
 
-          myLoadedSxores.sort((a, b) {
+          myLoadedScores.sort((a, b) {
             int scoreComparison = b.playerScore.compareTo(a.playerScore);
             if (scoreComparison != 0) {
               return scoreComparison;
@@ -109,7 +109,7 @@ class _InsideQuizScoreBoardScreenState
             }
           });
 
-          myScores = myLoadedSxores;
+          myScores = myLoadedScores;
 
           return loadedScores;
         } catch (e) {
@@ -211,6 +211,7 @@ class _InsideQuizScoreBoardScreenState
                               children: [
                                 Text(
                                     'Score: ${myScore.playerScore}/${myScore.noOfQuestions}'),
+                                Text('Attempt: ${myScore.attemptNo + 1}'),
                                 Text(
                                     'Date: ${DateFormat('yyyy-MM-dd').format(myScore.timestamp.toDate())}'),
                               ],
@@ -267,6 +268,7 @@ class _InsideQuizScoreBoardScreenState
                               children: [
                                 Text(
                                     'Score: ${score.playerScore}/${score.noOfQuestions}'),
+                                Text('Attempt: ${score.attemptNo + 1}'),
                                 Text(
                                     'Date: ${DateFormat('yyyy-MM-dd').format(score.timestamp.toDate())}'),
                               ],

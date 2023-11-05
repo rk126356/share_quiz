@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
@@ -50,9 +51,16 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   }
 
   Future<void> deleteQuiz(String quizID) async {
+    var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
     await firestore.collection('allQuizzes').doc(quizID).delete();
+    await firestore
+        .collection('users')
+        .doc(data.userData.uid)
+        .update({'noOfQuizzes': FieldValue.increment(-1)});
+
+    data.setUserData(UserModel(noOfQuizzes: data.userData.noOfQuizzes! - 1));
 
     setState(() {
       // Remove the deleted quiz from the list.

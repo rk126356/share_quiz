@@ -16,8 +16,6 @@ class UserModel {
   int? noOfQuizzes;
   int? noOfFollowers;
   int? noOfFollowings;
-  List<Follower>? listOfFollowers;
-  List<Following>? listOfFollowing;
 
   UserModel({
     this.name,
@@ -37,8 +35,6 @@ class UserModel {
     this.noOfQuizzes,
     this.noOfFollowers,
     this.noOfFollowings,
-    this.listOfFollowers,
-    this.listOfFollowing,
   });
 
   UserModel.fromJson(Map<String, dynamic> json) {
@@ -59,16 +55,6 @@ class UserModel {
     noOfQuizzes = json['noOfQuizzes'];
     noOfFollowers = json['noOfFollowers'];
     noOfFollowings = json['noOfFollowings'];
-
-    if (json['listOfFollowers'] != null) {
-      listOfFollowers = List<Follower>.from(json['listOfFollowers']
-          .map((follower) => Follower.fromJson(follower)));
-    }
-
-    if (json['listOfFollowing'] != null) {
-      listOfFollowing = List<Following>.from(json['listOfFollowing']
-          .map((following) => Following.fromJson(following)));
-    }
   }
 
   Map<String, dynamic> toJson() {
@@ -91,60 +77,6 @@ class UserModel {
     data['noOfFollowers'] = noOfFollowers;
     data['noOfFollowings'] = noOfFollowings;
 
-    if (listOfFollowers != null) {
-      data['listOfFollowers'] =
-          listOfFollowers?.map((follower) => follower.toJson()).toList();
-    }
-
-    if (listOfFollowing != null) {
-      data['listOfFollowing'] =
-          listOfFollowing?.map((following) => following.toJson()).toList();
-    }
-
-    return data;
-  }
-}
-
-class Follower {
-  String? userId;
-  String? date;
-
-  Follower({
-    this.userId,
-    this.date,
-  });
-
-  Follower.fromJson(Map<String, dynamic> json) {
-    userId = json['userId'];
-    date = json['date'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['userId'] = userId;
-    data['date'] = date;
-    return data;
-  }
-}
-
-class Following {
-  String? userId;
-  String? date;
-
-  Following({
-    this.userId,
-    this.date,
-  });
-
-  Following.fromJson(Map<String, dynamic> json) {
-    userId = json['userId'];
-    date = json['date'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['userId'] = userId;
-    data['date'] = date;
     return data;
   }
 }

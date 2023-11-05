@@ -1,13 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
+import 'package:share_quiz/screens/profile/followers_screen.dart';
+import 'package:share_quiz/screens/profile/followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/user_quizzes_screen.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -34,6 +38,7 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
     final quizCollection = await firestore
         .collection('allQuizzes')
         .where('creatorUserID', isEqualTo: userId)
+        .where('visibility', isEqualTo: 'Public')
         .get();
 
     for (final quizDoc in quizCollection.docs) {
@@ -201,9 +206,114 @@ class _ProfileAvatar extends StatefulWidget {
 }
 
 class _ProfileAvatarState extends State<_ProfileAvatar> {
+  bool _isFollowing = false;
+  bool _isLoadingFollow = false;
+  bool _isChecking = true;
+
+  checkIfFollowing() async {
+    _isChecking = true;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final followingQuizRef = firestore.collection('users/$uid/myFollowings');
+
+      final followingQuizSnapshot = await followingQuizRef
+          .where('userID', isEqualTo: widget.user.uid)
+          .get();
+
+      setState(() {
+        _isFollowing = followingQuizSnapshot.docs.isNotEmpty;
+        _isChecking = false;
+      });
+    }
+  }
+
+  addFollowing() async {
+    setState(() {
+      _isLoadingFollow = true;
+    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      final firestore = FirebaseFirestore.instance;
+      final followingRef = firestore.collection('users/$uid/myFollowings');
+      final otherUserRef =
+          firestore.collection('users/${widget.user.uid}/myFollowers');
+
+      final followingSnapshot =
+          await followingRef.where('userID', isEqualTo: widget.user.uid).get();
+      final followersRefSnapshot =
+          await otherUserRef.where('userID', isEqualTo: user.uid).get();
+
+      if (!_isFollowing) {
+        setState(() {
+          _isFollowing = true;
+          _isLoadingFollow = false;
+          widget.user.noOfFollowers = widget.user.noOfFollowers! + 1;
+        });
+
+        await followingRef.add({
+          'userID': widget.user.uid,
+          'myUserID': user.uid,
+          'createdAt': Timestamp.now(),
+        });
+        await otherUserRef.add({
+          'userID': user.uid,
+          'myUserID': widget.user.uid,
+          'createdAt': Timestamp.now(),
+        });
+        await firestore
+            .collection('users')
+            .doc(widget.user.uid)
+            .update({'noOfFollowers': FieldValue.increment(1)});
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .update({'noOfFollowings': FieldValue.increment(1)});
+      } else {
+        setState(() {
+          _isFollowing = false;
+          _isLoadingFollow = false;
+          widget.user.noOfFollowers = widget.user.noOfFollowers! - 1;
+        });
+
+        for (final doc in followingSnapshot.docs) {
+          await doc.reference.delete();
+        }
+        for (final doc in followersRefSnapshot.docs) {
+          await doc.reference.delete();
+        }
+        await firestore
+            .collection('users')
+            .doc(widget.user.uid)
+            .update({'noOfFollowers': FieldValue.increment(-1)});
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .update({'noOfFollowings': FieldValue.increment(-1)});
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkIfFollowing();
+  }
+
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (_isChecking) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -264,13 +374,53 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      FloatingActionButton.extended(
-                        onPressed: () {},
-                        heroTag: 'follow',
-                        elevation: 0,
-                        label: const Text("Follow"),
-                        icon: const Icon(Icons.person_add_alt_1),
-                      ),
+                      _isLoadingFollow && !_isFollowing
+                          ? Lottie.asset(
+                              'assets/images/follow.json',
+                              width: 50,
+                              height: 50,
+                            )
+                          : _isLoadingFollow && _isFollowing
+                              ? Lottie.asset(
+                                  'assets/images/unfollow.json',
+                                  width: 50,
+                                  height: 50,
+                                )
+                              : Container(
+                                  width: 120,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                        20), // Make it round by adjusting the borderRadius
+                                    color: _isFollowing
+                                        ? Colors.red.shade500
+                                        : CupertinoColors
+                                            .activeBlue, // Set the background color based on _isFollowing
+                                  ),
+                                  child: TextButton(
+                                    onPressed: addFollowing,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _isFollowing
+                                              ? Icons.person_remove_alt_1
+                                              : Icons.person_add_alt_1,
+                                          color: Colors
+                                              .white, // Set the icon color to white
+                                        ),
+                                        const SizedBox(
+                                          width: 5,
+                                        ),
+                                        Text(
+                                          _isFollowing ? "Unfollow" : "Follow",
+                                          style: const TextStyle(
+                                              color: Colors
+                                                  .white), // Set the text color to white
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
                     ],
                   ),
             const SizedBox(
@@ -290,13 +440,12 @@ class _ProfileInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           Text(
-            data.userData.name!,
+            user.name!,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -346,8 +495,26 @@ class _ProfileStats extends StatelessWidget {
                     )),
           );
         }),
-        _StatItem("Followers", '${user.noOfFollowers ?? 0}', () {}),
-        _StatItem("Following", '${user.noOfFollowings ?? 0}', () {}),
+        _StatItem("Followers", '${user.noOfFollowers ?? 0}', () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => FollowersScreen(
+                      userID: user.uid!,
+                      username: user.username!,
+                    )),
+          );
+        }),
+        _StatItem("Following", '${user.noOfFollowings ?? 0}', () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => FollowingsScreen(
+                      userID: user.uid!,
+                      username: user.username!,
+                    )),
+          );
+        }),
       ],
     );
   }

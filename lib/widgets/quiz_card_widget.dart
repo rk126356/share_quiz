@@ -205,7 +205,7 @@ class _QuizCardItemsState extends State<QuizCardItems> {
             trailing: IconButton(
                 onPressed: () {
                   updateShare(
-                      widget.quizData!.quizID, widget.quizData.creatorUserID);
+                      widget.quizData.quizID, widget.quizData.creatorUserID);
                 },
                 icon: const Icon(Icons.share)),
           ),
