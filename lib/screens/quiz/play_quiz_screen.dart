@@ -28,7 +28,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   Timer? timeTaken;
   late int secondsRemaining;
   int secondsTotal = 0;
-  int? noOfAttempts;
+  int? noOfAttempts = 0;
 
   fetchScores() async {
     var userDataProvider =
@@ -46,35 +46,21 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
           final scoresData = data['scores'] as List<dynamic>;
 
           final loadedScores = await Future.wait(scoresData.map((score) async {
-            final userDoc = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(score['playerUid'])
-                .get();
-
-            final userData = userDoc.data();
-
             if (userDataProvider.uid == score['playerUid']) {
-              return Score(
-                  playerUid: score['playerUid'] ?? '',
-                  playerName: userData?['displayName'],
-                  playerImage: userData?['avatarUrl'],
-                  playerScore: score['playerScore'] ?? 0,
-                  timestamp: score['timestamp'],
-                  timeTaken: score['timeTaken'] ?? 0,
-                  noOfQuestions: score['noOfQuestions'] ?? 0,
-                  attemptNo: score['attemptNo'] ?? 0);
+              noOfAttempts = noOfAttempts! + 1;
             }
           }).toList());
 
-          noOfAttempts = loadedScores.length;
+          print(noOfAttempts);
         } catch (e) {
           if (kDebugMode) {
             print(e);
           }
         }
+      } else {
+        noOfAttempts = 0;
       }
     }
-    return [];
   }
 
   void updatePlays() async {

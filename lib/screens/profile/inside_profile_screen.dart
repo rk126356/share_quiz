@@ -258,6 +258,15 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
           widget.user.noOfFollowers = otherUserRefData.docs.length + 1;
         });
 
+        await firestore
+            .collection('users')
+            .doc(widget.user.uid)
+            .update({'noOfFollowers': otherUserRefData.docs.length + 1});
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .update({'noOfFollowings': followingRefData.docs.length + 1});
+
         await followingRef.add({
           'userID': widget.user.uid,
           'myUserID': user.uid,
@@ -268,15 +277,6 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
           'myUserID': widget.user.uid,
           'createdAt': Timestamp.now(),
         });
-
-        await firestore
-            .collection('users')
-            .doc(widget.user.uid)
-            .update({'noOfFollowers': followingRefData.docs.length + 1});
-        await firestore
-            .collection('users')
-            .doc(user.uid)
-            .update({'noOfFollowings': otherUserRefData.docs.length + 1});
       } else {
         setState(() {
           _isFollowing = false;
@@ -284,20 +284,21 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
           widget.user.noOfFollowers = otherUserRefData.docs.length - 1;
         });
 
+        await firestore
+            .collection('users')
+            .doc(widget.user.uid)
+            .update({'noOfFollowers': otherUserRefData.docs.length - 1});
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .update({'noOfFollowings': followingRefData.docs.length - 1});
+
         for (final doc in followingSnapshot.docs) {
           await doc.reference.delete();
         }
         for (final doc in followersRefSnapshot.docs) {
           await doc.reference.delete();
         }
-        await firestore
-            .collection('users')
-            .doc(widget.user.uid)
-            .update({'noOfFollowers': followingRefData.docs.length - 1});
-        await firestore
-            .collection('users')
-            .doc(user.uid)
-            .update({'noOfFollowings': otherUserRefData.docs.length - 1});
       }
     }
   }

@@ -29,9 +29,8 @@ class MyApp extends StatelessWidget {
   Future<void> checkUser(user, context) async {
     var data = Provider.of<UserProvider>(context, listen: false);
 
-    final userDoc = FirebaseFirestore.instance
-        .collection('users')
-        .doc(data.userData.uid ?? user.uid);
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user.uid);
     final userDocSnapshot = await userDoc.get();
 
     if (userDocSnapshot.exists) {
@@ -66,7 +65,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
     // checkUser(null, context);
     return MaterialApp(
       title: 'ShareQuiz',
@@ -79,37 +77,37 @@ class MyApp extends StatelessWidget {
             .copyWith(secondary: Colors.blue)
             .copyWith(background: Colors.white),
       ),
-      // home: StreamBuilder<User?>(
-      //   stream: FirebaseAuth.instance.authStateChanges(),
-      //   builder: (BuildContext context, AsyncSnapshot snapshot) {
-      //     if (snapshot.hasError) {
-      //       return Text('Error: ${snapshot.error}');
-      //     }
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     }
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      //     if (snapshot.connectionState == ConnectionState.active) {
-      //       if (snapshot.data == null) {
-      //         return const LoginScreen();
-      //       } else {
-      //         var user = FirebaseAuth.instance.currentUser!;
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.data == null) {
+              return const LoginScreen();
+            } else {
+              var user = FirebaseAuth.instance.currentUser!;
 
-      //         checkUser(user, context);
+              checkUser(user, context);
 
-      //         Provider.of<UserProvider>(context, listen: false)
-      //             .setUserData(UserModel(
-      //           uid: user.uid,
-      //           email: user.email,
-      //         ));
+              Provider.of<UserProvider>(context, listen: false)
+                  .setUserData(UserModel(
+                uid: user.uid,
+                email: user.email,
+              ));
 
-      //         return NavigationScreen();
-      //       }
-      //     }
-      //     return const LoginScreen();
-      //   },
-      // ),
-      initialRoute: '/app',
+              return NavigationScreen();
+            }
+          }
+          return const LoginScreen();
+        },
+      ),
+      // initialRoute: '/app',
       routes: <String, WidgetBuilder>{
         '/app': (context) => NavigationScreen(),
       },

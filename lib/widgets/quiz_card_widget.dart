@@ -81,6 +81,8 @@ class _QuizCardItemsState extends State<QuizCardItems> {
   bool _isLoading = false;
 
   Future<void> addLikedQuizToFirebase(String quizID, String categories) async {
+    checkIfQuizIsLiked();
+    checkIfQuizIsDisliked();
     setState(() {
       _isLoading = true;
     });
@@ -105,14 +107,9 @@ class _QuizCardItemsState extends State<QuizCardItems> {
 
       final quizDataMap = quizCollection.data();
 
-      int currentLikes = quizDataMap?['likes'] ?? 0;
-      int currentDisLikes = quizDataMap?['disLikes'] ?? 0;
-
       if (_isLiked) {
-        if (currentLikes > 0) {
-          await quizCollection.reference
-              .update({'likes': FieldValue.increment(-1)});
-        }
+        await quizCollection.reference
+            .update({'likes': FieldValue.increment(-1)});
 
         for (final doc in likedQuizSnapshot.docs) {
           await doc.reference.delete();
@@ -126,10 +123,9 @@ class _QuizCardItemsState extends State<QuizCardItems> {
       } else {
         await quizCollection.reference
             .update({'likes': FieldValue.increment(1)});
-        if (currentDisLikes > 0) {
-          await quizCollection.reference
-              .update({'disLikes': FieldValue.increment(-1)});
-        }
+
+        await quizCollection.reference
+            .update({'disLikes': FieldValue.increment(-1)});
 
         List<String> categories1 = categories.split(',');
 
@@ -168,6 +164,14 @@ class _QuizCardItemsState extends State<QuizCardItems> {
       updateViews();
       isViewsUpdated = true;
     }
+
+    String quizDescription = widget.quizData.quizDescription!;
+    List<String> lines = quizDescription.split('\n');
+
+    if (lines.length > 6) {
+      quizDescription = lines.take(6).join('\n') + '...';
+    }
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: 4,
@@ -195,7 +199,7 @@ class _QuizCardItemsState extends State<QuizCardItems> {
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 5),
               child: Text(
-                widget.quizData.quizDescription!,
+                quizDescription!,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,

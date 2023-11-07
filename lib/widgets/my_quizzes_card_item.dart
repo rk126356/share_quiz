@@ -83,6 +83,13 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
       updateViews();
       isViewsUpdated = true;
     }
+
+    String quizDescription = widget.quizData.quizDescription!;
+    List<String> lines = quizDescription.split('\n');
+
+    if (lines.length > 6) {
+      quizDescription = lines.take(6).join('\n') + '...';
+    }
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: 4,
@@ -110,7 +117,7 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 5),
               child: Text(
-                widget.quizData.quizDescription!,
+                quizDescription!,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,

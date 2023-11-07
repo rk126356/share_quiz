@@ -16,6 +16,7 @@ class ALlTagsScreen extends StatefulWidget {
 
 class _ALlTagsScreenState extends State<ALlTagsScreen> {
   final List tagItems = [];
+  final List topTags = ['#india', '#cricket', '#football'];
 
   Future<void> fetchTags() async {
     final firestore = FirebaseFirestore.instance;
@@ -120,7 +121,27 @@ class _ALlTagsScreenState extends State<ALlTagsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Column(children: [Text('Coming sonnn')]),
+              const SizedBox(height: 8.0),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: List.generate(topTags.length, (index) {
+                  return AllTagsBox(
+                    title: topTags[index],
+                    backgroundColor: predefinedColors[
+                        Random().nextInt(predefinedColors.length)],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => InsideQuizTagScreen(
+                                  tag: topTags[index],
+                                )),
+                      );
+                    },
+                  );
+                }),
+              ),
               const SizedBox(
                 height: 10,
               ),

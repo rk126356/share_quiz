@@ -7,7 +7,9 @@ import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
+import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
+import 'package:share_quiz/utils/remove_line_breakes.dart';
 
 class CreateScreen extends StatefulWidget {
   const CreateScreen({Key? key}) : super(key: key);
@@ -365,7 +367,7 @@ class _CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  saveQuiz(data) async {
+  saveQuiz(data, context) async {
     if (quizData.quizTitle != null &&
         quizData.quizDescription != null &&
         previewQuestions.length > 1 &&
@@ -393,6 +395,8 @@ class _CreateScreenState extends State<CreateScreen> {
       quizData.creatorUsername = data.userData.username;
       quizData.noOfQuestions = previewQuestions.length;
       quizData.difficulty = quizData.difficulty ?? 'Medium';
+      quizData.quizDescription =
+          removeExtraLineBreaks(quizData.quizDescription!);
       await _firestore
           .collection('allQuizzes')
           .doc(quizData.quizID)
@@ -411,6 +415,10 @@ class _CreateScreenState extends State<CreateScreen> {
       setState(() {
         _isLoading = false;
       });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+      );
     } else {
       showDialog(
         context:
@@ -473,22 +481,26 @@ class _CreateScreenState extends State<CreateScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                saveQuiz(data);
+                saveQuiz(data, context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor:
                     CupertinoColors.activeBlue, // Bold orange button
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
-                    CupertinoIcons.folder,
+                    quizData.visibility == 'Draft'
+                        ? CupertinoIcons.folder
+                        : CupertinoIcons.cloud_upload,
                     color: Colors.white, // White icon color
                   ),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   Text(
-                    "Save Quiz",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    quizData.visibility == 'Draft'
+                        ? 'Save Draft'
+                        : "Publish Quiz",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -596,7 +608,7 @@ class _CreateScreenState extends State<CreateScreen> {
                                 quizData.visibility = value;
                               });
                             },
-                            items: <String>['Public', 'Private']
+                            items: <String>['Public', 'Private', 'Draft']
                                 .map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -631,8 +643,11 @@ class _CreateScreenState extends State<CreateScreen> {
                                 quizData.difficulty = value;
                               });
                             },
-                            items: <String>['Easy', 'Medium', 'Hard']
-                                .map((String value) {
+                            items: <String>[
+                              'Easy',
+                              'Medium',
+                              'Hard',
+                            ].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
@@ -666,7 +681,8 @@ class _CreateScreenState extends State<CreateScreen> {
                                 quizData.timer = value;
                               });
                             },
-                            items: <int>[20, 40, 60, 120, 999].map((int value) {
+                            items: <int>[20, 40, 60, 120, 240, 999]
+                                .map((int value) {
                               return DropdownMenuItem<int>(
                                 value: value,
                                 child: value == 999

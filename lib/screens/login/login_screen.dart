@@ -65,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           uid: _user.uid,
           email: _user.email,
           name: _user.displayName,
+          avatarUrl: _user.photoURL,
         ));
 
         // Check if the user data already exists in Firestore

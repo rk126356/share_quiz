@@ -4,11 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/updateShare.dart';
 import 'package:share_quiz/data/quiz_item_data.dart';
+import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -45,6 +47,9 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   late DocumentSnapshot<Map<String, dynamic>> _quizCollection;
 
   Future<CreateQuizDataModel> fetchQuizDetails() async {
+    setState(() {
+      _isLoading = true;
+    });
     final firestore = FirebaseFirestore.instance;
 
     final quizCollection =
@@ -57,6 +62,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     if (quizDataMap?['quizzes'] != null) {
       setState(() {
         _isQuizDataFound = true;
+        _isLoading = false;
       });
 
       try {
@@ -93,6 +99,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           timer: quizDataMap?['timer'],
           visibility: quizDataMap?['visibility'],
           creatorUserID: quizDataMap?['creatorUserID'],
+          difficulty: quizDataMap?['difficulty'],
           quizzes: quizzesList.map((quizMap) {
             return Quizzes(
               questionTitle: quizMap['questionTitle'],
@@ -124,7 +131,9 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     } else {
       setState(() {
         _isQuizDataFound = false;
+        _isLoading = false;
       });
+
       if (kDebugMode) {
         print('Quiz data is not available');
       }
@@ -310,7 +319,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isQuizDataFound && quizItems.isEmpty) {
+    var data = Provider.of<UserProvider>(context, listen: false);
+    if (!_isQuizDataFound && !_isLoading) {
       return Scaffold(
           appBar: AppBar(
             title: const Text('Quiz data not found'),
@@ -319,6 +329,16 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           body: const Center(
             child: Text("Quiz is deleted or wrong Quiz ID"),
           ));
+    }
+
+    if (!_isQuizDataFound && _isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Fetching Quiz details...'),
+          backgroundColor: AppColors.primaryColor,
+        ),
+        body: const LoadingWidget(),
+      );
     }
 
     return Scaffold(
@@ -367,21 +387,43 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 5.0),
                         child: ListTile(
-                          title: Text(
-                            quizData?.quizTitle ?? 'No Title',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                            title: Text(
+                              quizData?.quizTitle ?? 'No Title',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            quizData?.quizDescription ?? 'No Description',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
+                            subtitle: ExpansionTile(
+                                tilePadding: EdgeInsets.zero,
+                                title: Text(
+                                  quizData!.quizDescription!,
+                                  textAlign: TextAlign.left,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  maxLines:
+                                      1, // You can adjust the number of visible lines as needed
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 4.0, bottom: 8.0),
+                                    child: Align(
+                                      alignment: Alignment.bottomLeft,
+                                      child: Text(
+                                        quizData!.quizDescription!,
+                                        textAlign: TextAlign.left,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ])),
                       ),
                       Row(
                         children: [
@@ -394,32 +436,50 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                               ),
                               child: TextButton(
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PlayQuizScreen(
-                                        quizData: quizData!,
-                                        quizID: widget.quizID,
-                                      ),
-                                    ),
-                                  );
+                                  data.userData.uid! ==
+                                              quizData.creatorUserID &&
+                                          quizData.visibility == 'Draft'
+                                      ? () {}
+                                      : data.userData.uid! !=
+                                                  quizData.creatorUserID &&
+                                              quizData.visibility == 'Draft'
+                                          ? () {}
+                                          : Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PlayQuizScreen(
+                                                  quizData: quizData!,
+                                                  quizID: widget.quizID,
+                                                ),
+                                              ),
+                                            );
                                 },
                                 style: TextButton.styleFrom(
                                   padding: const EdgeInsets.all(15),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       CupertinoIcons.play_arrow,
                                       color: Colors.white,
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                       width: 8,
                                     ),
                                     Text(
-                                      'PLAY QUIZ',
-                                      style: TextStyle(color: Colors.white),
+                                      data.userData.uid! !=
+                                                  quizData.creatorUserID &&
+                                              quizData.visibility == 'Draft'
+                                          ? 'Coming Soon...'
+                                          : data.userData.uid! ==
+                                                      quizData.creatorUserID &&
+                                                  quizData.visibility == 'Draft'
+                                              ? 'Edit Quiz'
+                                              : 'PLAY QUIZ',
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -638,6 +698,11 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                           }).toList(),
                         ),
                       ),
+                      statTile('Difficulty', CupertinoIcons.lightbulb,
+                          quizData.difficulty!, () {}),
+                      if (quizData.visibility != 'Public')
+                        statTile('Visibility', CupertinoIcons.globe,
+                            quizData.visibility!, () {}),
                       statTile('Questions', CupertinoIcons.question_circle,
                           quizData.noOfQuestions.toString(), () {}),
                       statTile('Views', CupertinoIcons.eye,

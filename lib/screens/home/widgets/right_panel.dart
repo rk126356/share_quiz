@@ -108,6 +108,8 @@ class _RightPanelState extends State<RightPanel> {
   String? _currentLikes;
 
   Future<void> addLikedQuizToFirebase(String quizID, String categories) async {
+    checkIfQuizIsLiked();
+    checkIfQuizIsDisliked();
     setState(() {
       _isLoading = true;
     });

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/widgets/all_tags_box_widget.dart';
 import 'package:share_quiz/widgets/small_category_box_widget.dart';
@@ -36,9 +37,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
       final tagItem = tagData['categories'];
 
       for (final tag in tagItem) {
-        if (!tagItems.contains(tag)) {
-          tagItems.add(tag);
-        } else {}
+        if (tagItems.length < 9) {
+          if (!tagItems.contains(tag)) {
+            tagItems.add(tag);
+          } else {}
+        }
       }
     }
 
@@ -56,6 +59,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.primaryColor,
         title: const Text("Explore"),
       ),
       body: SingleChildScrollView(
@@ -86,7 +90,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     const Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: "Search Player",
+                          hintText: "Search User",
                           border: InputBorder.none,
                           icon: Icon(Icons.search, color: Colors.blue),
                         ),
@@ -146,26 +150,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       trailing: Text(
-                        "Quiz Completed: ${1000 - index * 50}",
+                        "Quiz Created: ${1000 - index * 50}",
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  ),
-                  child: const Text("See All Rankings"),
-                ),
-              ),
+
               const SizedBox(
                 height: 22,
               ),
@@ -199,6 +191,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     },
                   );
                 }),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ALlTagsScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  ),
+                  child: const Text("See All Tags"),
+                ),
               ),
               const SizedBox(
                 height: 25,

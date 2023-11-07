@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
+import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_followers_screen.dart';
 import 'package:share_quiz/screens/profile/my_followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
@@ -55,7 +56,7 @@ class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var user = FirebaseAuth.instance.currentUser;
-    var data = Provider.of<UserProvider>(context, listen: false);
+    var data = Provider.of<UserProvider>(context);
 
     return Center(
       child: Column(
@@ -114,12 +115,10 @@ class _ProfileAvatar extends StatelessWidget {
 class _ProfileInfo extends StatelessWidget {
   final User user;
 
-  _ProfileInfo({required this.user});
+  const _ProfileInfo({required this.user});
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -127,7 +126,7 @@ class _ProfileInfo extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
 
         var userData = snapshot.data?.data() as Map<String, dynamic>;
@@ -171,7 +170,7 @@ class _ProfileInfo extends StatelessWidget {
 class _ProfileStats extends StatelessWidget {
   final User user;
 
-  _ProfileStats({required this.user});
+  const _ProfileStats({required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +181,7 @@ class _ProfileStats extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
 
         var userData = snapshot.data?.data() as Map<String, dynamic>;
@@ -301,6 +300,22 @@ class _QuickLinks extends StatelessWidget {
           },
         ),
         ListTile(
+          leading:
+              const Icon(CupertinoIcons.folder, color: AppColors.primaryColor),
+          title: const Text("My Drafts"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MyDraftQuizzesScreen()),
+            );
+          },
+        ),
+        ListTile(
           leading: const Icon(CupertinoIcons.arrow_2_circlepath,
               color: AppColors.primaryColor),
           title: const Text("My History"),
@@ -317,18 +332,6 @@ class _QuickLinks extends StatelessWidget {
                 ),
               ),
             );
-          },
-        ),
-        ListTile(
-          leading: const Icon(CupertinoIcons.chart_bar,
-              color: AppColors.primaryColor),
-          title: const Text("My Ranking"),
-          trailing: const Icon(
-            CupertinoIcons.forward,
-            color: AppColors.primaryColor,
-          ),
-          onTap: () {
-            // Handle navigation to the user's ranking.
           },
         ),
         ListTile(

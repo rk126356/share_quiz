@@ -2,24 +2,26 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
 import 'package:share_quiz/screens/home/widgets/quiz_desxription_gap.dart';
 import 'package:share_quiz/screens/home/widgets/right_panel.dart';
-import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final bool? isFollowingTab;
+  const HomeScreen({Key? key, this.isFollowingTab}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -27,149 +29,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool _isLoading = false;
-
-  final List<CreateQuizDataModel> quizItems = [];
-
-  Future<void> fetchQuizzes() async {
-    _isLoading = true;
-    final firestore = FirebaseFirestore.instance;
-    try {
-      final List<CreateQuizDataModel> newQuizItems = [];
-
-      final quizCollection = await firestore
-          .collection('allQuizzes')
-          .where('visibility', isEqualTo: 'Public')
-          .get();
-
-      for (final quizDoc in quizCollection.docs) {
-        final quizData = quizDoc.data();
-
-        final userCollection = await firestore
-            .collection('users')
-            .doc(quizData['creatorUserID'])
-            .get();
-
-        final userData = userCollection.data();
-
-        final quizItem = CreateQuizDataModel(
-          quizID: quizData['quizID'],
-          creatorName: userData?['displayName'],
-          creatorUsername: userData?['username'],
-          creatorImage: userData?['avatarUrl'],
-          quizDescription: quizData['quizDescription'],
-          quizTitle: quizData['quizTitle'],
-          likes: quizData['likes'],
-          views: quizData['views'],
-          taken: quizData['taken'],
-          wins: quizData['wins'],
-          shares: quizData['shares'],
-          topScorerImage: quizData['topScorerImage'],
-          topScorerName: quizData['topScorerName'],
-          topScorerUid: quizData['topScorerUid'],
-          categories: quizData['categories'],
-          noOfQuestions: quizData['noOfQuestions'],
-          creatorUserID: quizData['creatorUserID'],
-          createdAt: quizData['createdAt'],
-          timer: quizData['timer'],
-        );
-
-        newQuizItems.add(quizItem);
-      }
-
-      final random = Random();
-      newQuizItems.shuffle(random);
-
-      setState(() {
-        quizItems.clear();
-        quizItems.addAll(newQuizItems);
-      });
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error fetching quizzes: $e");
-      }
-    }
-    _isLoading = false;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: quizItems.length, vsync: this);
-    fetchQuizzes();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _tabController.dispose();
-  }
-
-  getBody() {
-    var size = MediaQuery.of(context).size;
-    return RotatedBox(
-      quarterTurns: 1,
-      child: TabBarView(
-        controller: _tabController,
-        children: List.generate(
-          quizItems.length,
-          (index) => RotatedBox(
-            quarterTurns: -1,
-            child: SafeArea(
-              child: Container(
-                color: Colors.black,
-                child: QuizTikTokItems(
-                  size: size,
-                  quizID: quizItems[index].quizID,
-                  name: quizItems[index].creatorName!,
-                  username: quizItems[index].creatorUsername!,
-                  createdAt: quizItems[index].createdAt,
-                  quizTitle: quizItems[index].quizTitle,
-                  quizDescription: quizItems[index].quizDescription,
-                  categories: quizItems[index].categories!,
-                  noOfQuestions: quizItems[index].noOfQuestions,
-                  likes: quizItems[index].likes!,
-                  views: quizItems[index].views,
-                  taken: quizItems[index].taken,
-                  topScorerImage: quizItems[index].topScorerImage,
-                  topScorerName: quizItems[index].topScorerName,
-                  topScorerUid: quizItems[index].topScorerUid ?? '',
-                  wins: quizItems[index].wins,
-                  shares: quizItems[index].shares.toString(),
-                  profileImg: quizItems[index].creatorImage!,
-                  creatorUserID: quizItems[index].creatorUserID!,
-                  timer: quizItems[index].timer,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Future<void> checkUser(user, context) async {
-  //   final userDoc =
-  //       FirebaseFirestore.instance.collection('users').doc(user.uid);
-  //   final userDocSnapshot = await userDoc.get();
-
-  //   if (userDocSnapshot.exists) {
-  //     final userData = userDocSnapshot.data();
-  //     if (userData!.containsKey('bio') &&
-  //         userData['bio'] != null &&
-  //         userData['bio'] != '') {
-  //     } else {
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const CreateProfileScreen()),
-  //       );
-  //     }
-  //   } else {}
-  // }
-
-  bool isUserChecked = false;
-
   final TextEditingController _searchController = TextEditingController();
 
   // Function to handle search button press
@@ -210,55 +69,290 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          leading: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CachedNetworkImage(
-                  imageUrl:
-                      'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2Fezgif-4-e8a7f6764c.gif?alt=media&token=1e048c6a-74cd-4d44-bb79-90671ecc20f9',
-                  placeholder: (context, url) =>
-                      const CircularProgressIndicator(), // Placeholder widget while loading
-                  errorWidget: (context, url, error) =>
-                      const Icon(Icons.error), // Widget to display on error
-                  fadeInDuration: const Duration(
-                      milliseconds: 200), // Duration for the image to fade in
-                ),
-                const Center(child: HeaderHomePage()),
-                Row(
-                  children: [
-                    IconButton(
-                        onPressed: onSearchButtonPressed,
-                        icon: const Icon(CupertinoIcons.refresh)),
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
-                          );
-                        },
-                        icon: const Icon(CupertinoIcons.refresh)),
-                  ],
-                )
-              ],
-            ),
-          ),
-          leadingWidth: double.infinity,
-          backgroundColor: Colors.black,
-          toolbarHeight: 40,
-        ),
-        body: const LoadingWidget(),
-      );
+  late TabController _tabController;
+  bool _isLoading = false;
+  bool _isForYouTab = true;
+  int forYouTabLength = 29;
+  int followingTabLemgth = 19;
+
+  List<CreateQuizDataModel> forYouQuizzes = [];
+  List<CreateQuizDataModel> followingQuizzes = [];
+  DocumentSnapshot? lastDocumentForYou;
+  DocumentSnapshot? lastDocumentFollowings;
+  DocumentSnapshot? lastFollowingQuiz;
+
+  Future<void> fetchQuizzes(bool dontClear) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final firestore = FirebaseFirestore.instance;
+    var user = FirebaseAuth.instance.currentUser;
+
+    if (!_isForYouTab) {
+      QuerySnapshot<Map<String, dynamic>> followingRef;
+
+      if (dontClear) {
+        followingRef = await firestore
+            .collection('users/${user?.uid}/myFollowings')
+            .orderBy('createdAt')
+            .startAt([lastDocumentFollowings?['createdAt']])
+            .limit(5)
+            .get();
+      } else {
+        followingRef = await firestore
+            .collection('users/${user?.uid}/myFollowings')
+            .orderBy('createdAt')
+            .limit(5)
+            .get();
+      }
+
+      final List<CreateQuizDataModel> newQuizItems = [];
+
+      for (final docs in followingRef.docs) {
+        final userData = docs.data();
+        if (kDebugMode) {
+          print(userData['userID']);
+        }
+
+        lastDocumentFollowings =
+            followingRef.docs.isNotEmpty ? followingRef.docs.last : null;
+
+        if (kDebugMode) {
+          print(lastDocumentFollowings?['userID']);
+        }
+
+        try {
+          final QuerySnapshot<Map<String, dynamic>> quizCollection;
+
+          if (dontClear) {
+            quizCollection = await firestore
+                .collection('allQuizzes')
+                .where('creatorUserID', isEqualTo: userData['userID'])
+                .where('visibility', isEqualTo: 'Public')
+                .orderBy('createdAt', descending: true)
+                .startAfter([lastFollowingQuiz?['createdAt']])
+                .limit(5)
+                .get();
+          } else {
+            quizCollection = await firestore
+                .collection('allQuizzes')
+                .where('creatorUserID', isEqualTo: userData['userID'])
+                .where('visibility', isEqualTo: 'Public')
+                .orderBy('createdAt', descending: true)
+                .limit(5)
+                .get();
+          }
+
+          lastFollowingQuiz =
+              quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+          for (final quizDoc in quizCollection.docs) {
+            final quizData = quizDoc.data();
+
+            final userCollection = await firestore
+                .collection('users')
+                .doc(quizData['creatorUserID'])
+                .get();
+
+            final userData = userCollection.data();
+
+            final quizItem = CreateQuizDataModel(
+              quizID: quizData['quizID'],
+              creatorName: userData?['displayName'],
+              creatorUsername: userData?['username'],
+              creatorImage: userData?['avatarUrl'],
+              quizDescription: quizData['quizDescription'],
+              quizTitle: quizData['quizTitle'],
+              likes: quizData['likes'],
+              views: quizData['views'],
+              taken: quizData['taken'],
+              wins: quizData['wins'],
+              shares: quizData['shares'],
+              topScorerImage: quizData['topScorerImage'],
+              topScorerName: quizData['topScorerName'],
+              topScorerUid: quizData['topScorerUid'],
+              categories: quizData['categories'],
+              noOfQuestions: quizData['noOfQuestions'],
+              creatorUserID: quizData['creatorUserID'],
+              createdAt: quizData['createdAt'],
+              timer: quizData['timer'],
+              difficulty: quizData['difficulty'],
+              visibility: quizData['visibility'],
+            );
+
+            newQuizItems.add(quizItem);
+          }
+
+          setState(() {
+            if (!dontClear) {
+              followingQuizzes.clear();
+            }
+            followingQuizzes.addAll(newQuizItems);
+            followingQuizzes
+                .sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+          });
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error fetching following quizzes: $e");
+          }
+        }
+      }
+    } else {
+      try {
+        final List<CreateQuizDataModel> newQuizItems = [];
+
+        final QuerySnapshot<Map<String, dynamic>> quizCollection;
+
+        if (dontClear) {
+          quizCollection = await firestore
+              .collection('allQuizzes')
+              .where('visibility', isEqualTo: 'Public')
+              .orderBy('createdAt', descending: true)
+              .startAfter([lastDocumentForYou?['createdAt']])
+              .limit(11)
+              .get();
+        } else {
+          quizCollection = await firestore
+              .collection('allQuizzes')
+              .where('visibility', isEqualTo: 'Public')
+              .orderBy('createdAt', descending: true)
+              .limit(11)
+              .get();
+        }
+
+        lastDocumentForYou =
+            quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+        for (final quizDoc in quizCollection.docs) {
+          final quizData = quizDoc.data();
+
+          final userCollection = await firestore
+              .collection('users')
+              .doc(quizData['creatorUserID'])
+              .get();
+
+          final userData = userCollection.data();
+
+          final quizItem = CreateQuizDataModel(
+            quizID: quizData['quizID'],
+            creatorName: userData?['displayName'],
+            creatorUsername: userData?['username'],
+            creatorImage: userData?['avatarUrl'],
+            quizDescription: quizData['quizDescription'],
+            quizTitle: quizData['quizTitle'],
+            likes: quizData['likes'],
+            views: quizData['views'],
+            taken: quizData['taken'],
+            wins: quizData['wins'],
+            shares: quizData['shares'],
+            topScorerImage: quizData['topScorerImage'],
+            topScorerName: quizData['topScorerName'],
+            topScorerUid: quizData['topScorerUid'],
+            categories: quizData['categories'],
+            noOfQuestions: quizData['noOfQuestions'],
+            creatorUserID: quizData['creatorUserID'],
+            createdAt: quizData['createdAt'],
+            timer: quizData['timer'],
+            difficulty: quizData['difficulty'],
+          );
+
+          newQuizItems.add(quizItem);
+        }
+
+        setState(() {
+          if (!dontClear) {
+            forYouQuizzes.clear();
+          }
+
+          forYouQuizzes.addAll(newQuizItems);
+        });
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching for you quizzes: $e");
+        }
+      }
     }
 
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  saveUserData() async {
+    var user = FirebaseAuth.instance.currentUser!;
+    var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (kDebugMode) {
+      print(user.uid);
+    }
+
+    data.setUserData(UserModel(
+      uid: user.uid,
+      email: user.email,
+    ));
+
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userDocSnapshot = await userDoc.get();
+
+    if (userDocSnapshot.exists) {
+      final userData = userDocSnapshot.data();
+      data.setUserData(UserModel(
+        name: userData?['displayName'],
+        uid: userData?['uid'],
+        bio: userData?['bio'],
+        phoneNumber: userData?['phoneNumber'],
+        dob: userData?['dob'],
+        gender: userData?['gender'],
+        language: userData?['language'],
+        avatarUrl: userData?['avatarUrl'],
+        username: userData?['username'],
+        email: userData?['email'],
+      ));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    saveUserData();
+    if (widget.isFollowingTab != null) {
+      setState(() {
+        _isForYouTab = widget.isFollowingTab!;
+      });
+    }
+    fetchQuizzes(false);
+    _tabController = TabController(length: 9999, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController.dispose();
+  }
+
+  bool _isFirstTime = true;
+
+  bool _isReloadQuizForYou = false;
+  bool _isReloadQuizFollowings = false;
+
+  @override
+  Widget build(BuildContext context) {
+    _tabController.addListener(() {
+      print(_tabController.index);
+      if (_tabController.index == forYouTabLength && _isForYouTab) {
+        setState(() {
+          _isReloadQuizForYou = true;
+        });
+      }
+
+      if (_tabController.index == followingTabLemgth && !_isForYouTab) {
+        setState(() {
+          _isReloadQuizFollowings = true;
+        });
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -277,7 +371,68 @@ class _HomeScreenState extends State<HomeScreen>
                 fadeInDuration: const Duration(
                     milliseconds: 200), // Duration for the image to fade in
               ),
-              const Center(child: HeaderHomePage()),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isForYouTab = false;
+                        _tabController.index = 0;
+                      });
+                      if (_isFirstTime) {
+                        fetchQuizzes(false);
+                        _isFirstTime = false;
+                      }
+                    },
+                    child: Text(
+                      'Following',
+                      style: _isForYouTab
+                          ? TextStyle(
+                              fontSize: 16,
+                              color: white.withOpacity(.5),
+                            )
+                          : const TextStyle(
+                              fontSize: 17,
+                              color: white,
+                              fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '|',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: white.withOpacity(.3),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isForYouTab = true;
+                        _tabController.index = 0;
+                      });
+                      if (_isFirstTime) {
+                        fetchQuizzes(false);
+                        _isFirstTime = false;
+                      }
+                    },
+                    child: Text(
+                      'For You',
+                      style: !_isForYouTab
+                          ? TextStyle(
+                              fontSize: 16,
+                              color: white.withOpacity(.5),
+                            )
+                          : const TextStyle(
+                              fontSize: 17,
+                              color: white,
+                              fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -289,7 +444,9 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const HomeScreen()),
+                              builder: (context) => HomeScreen(
+                                    isFollowingTab: _isForYouTab,
+                                  )),
                         );
                       },
                       icon: const Icon(CupertinoIcons.refresh)),
@@ -302,7 +459,101 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: Colors.black,
         toolbarHeight: 40,
       ),
-      body: getBody(),
+      body: _isLoading
+          ? const LoadingWidget()
+          : !_isForYouTab
+              ? _isReloadQuizFollowings
+                  ? reload()
+                  : getBody(followingQuizzes)
+              : _isReloadQuizForYou
+                  ? reload()
+                  : getBody(forYouQuizzes),
+    );
+  }
+
+  Widget reload() {
+    return Center(
+      child: Container(
+        width: 200, // Adjust the width as needed
+        margin: const EdgeInsets.all(10.0), // Add margin around the button
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor, // Background color
+          borderRadius: BorderRadius.circular(10.0), // Rounded corners
+        ),
+        child: TextButton(
+          onPressed: () {
+            fetchQuizzes(true);
+            setState(() {
+              if (_isForYouTab) {
+                forYouTabLength = forYouTabLength + 2;
+                _isReloadQuizForYou = false;
+              } else {
+                followingTabLemgth = followingTabLemgth + 2;
+                _isReloadQuizFollowings = false;
+              }
+            });
+          },
+          style: ButtonStyle(
+            foregroundColor:
+                MaterialStateProperty.all(Colors.white), // Text color
+          ),
+          child: const Text(
+            'Load More Quizzes',
+            style: TextStyle(
+              fontSize: 16.0, // Text size
+              fontWeight: FontWeight.bold, // Text weight
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getBody(List<CreateQuizDataModel> quizItems) {
+    var size = MediaQuery.of(context).size;
+
+    return RotatedBox(
+      quarterTurns: 1,
+      child: TabBarView(
+        controller: _tabController,
+        children: List.generate(
+          quizItems.length,
+          (index) {
+            // print(index);
+            return RotatedBox(
+              quarterTurns: -1,
+              child: SafeArea(
+                child: Container(
+                  color: Colors.black,
+                  child: QuizTikTokItems(
+                    size: size,
+                    quizID: quizItems[index].quizID,
+                    name: quizItems[index].creatorName!,
+                    username: quizItems[index].creatorUsername!,
+                    createdAt: quizItems[index].createdAt,
+                    quizTitle: quizItems[index].quizTitle,
+                    quizDescription: quizItems[index].quizDescription,
+                    categories: quizItems[index].categories!,
+                    noOfQuestions: quizItems[index].noOfQuestions,
+                    likes: quizItems[index].likes!,
+                    views: quizItems[index].views,
+                    taken: quizItems[index].taken,
+                    topScorerImage: quizItems[index].topScorerImage,
+                    topScorerName: quizItems[index].topScorerName,
+                    topScorerUid: quizItems[index].topScorerUid ?? '',
+                    wins: quizItems[index].wins,
+                    shares: quizItems[index].shares.toString(),
+                    profileImg: quizItems[index].creatorImage!,
+                    creatorUserID: quizItems[index].creatorUserID!,
+                    timer: quizItems[index].timer,
+                    difficulty: quizItems[index].difficulty,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -330,6 +581,7 @@ class QuizTikTokItems extends StatefulWidget {
     required this.creatorUserID,
     required this.topScorerUid,
     this.timer,
+    this.difficulty,
   }) : super(key: key);
 
   final Size size;
@@ -352,6 +604,7 @@ class QuizTikTokItems extends StatefulWidget {
   final int? wins;
   final String creatorUserID;
   final int? timer;
+  final String? difficulty;
 
   @override
   State<QuizTikTokItems> createState() => _QuizTikTokItemsState();
@@ -362,15 +615,10 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
   updateViews() async {
     final firestore = FirebaseFirestore.instance;
 
-    final quizCollection = await firestore
-        .collection('users/${widget.creatorUserID}/myQuizzes')
-        .doc(widget.quizID)
-        .get();
+    final quizCollection =
+        await firestore.collection('allQuizzes').doc(widget.quizID).get();
 
-    final quizDataMap = quizCollection.data();
-    int currentViews = quizDataMap?['views'] ?? 0;
-    int updatedViews = currentViews + 1;
-    await quizCollection.reference.update({'views': updatedViews});
+    await quizCollection.reference.update({'views': FieldValue.increment(1)});
   }
 
   bool isViewsUpdated = false;
@@ -380,6 +628,13 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
     if (!isViewsUpdated) {
       updateViews();
       isViewsUpdated = true;
+    }
+
+    String quizDescription = widget.quizDescription!;
+    List<String> lines = quizDescription.split('\n');
+
+    if (lines.length > 6) {
+      quizDescription = '${lines.take(6).join('\n')}...';
     }
 
     return SizedBox(
@@ -404,6 +659,16 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                             Padding(
                               padding: const EdgeInsets.only(right: 50),
                               child: ListTile(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => InsideQuizScreen(
+                                              quizID: widget.quizID!,
+                                              isViewsUpdated: isViewsUpdated,
+                                            )),
+                                  );
+                                },
                                 title: Text(
                                   widget.quizTitle!,
                                   textAlign: TextAlign.left,
@@ -413,16 +678,15 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                       color: Colors.white),
                                 ),
                                 subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 12),
-                                  child: Text(
-                                    widget.quizDescription!,
-                                    textAlign: TextAlign.left,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ),
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: Text(
+                                      quizDescription!,
+                                      textAlign: TextAlign.left,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white70,
+                                      ),
+                                    )),
                               ),
                             ),
                             const SizedBox(
@@ -564,6 +828,13 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                               categories: widget.categories!.join(', '),
                             ),
                           ],
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Text(
+                          widget.difficulty!,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                       Align(
