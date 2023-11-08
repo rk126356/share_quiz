@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateQuizDataModel {
   String? quizTitle;
+  List<String>? quizTitleSubstrings;
   String? creatorName;
   String? creatorUsername;
   String? creatorUserID;
@@ -49,13 +50,15 @@ class CreateQuizDataModel {
     this.visibility,
     this.timer,
     this.difficulty,
+    this.quizTitleSubstrings,
   });
 
   CreateQuizDataModel.fromJson(Map<String, dynamic> json) {
     quizTitle = json['quizTitle'];
+    quizTitleSubstrings = json['quizTitleSubstrings']
+        ?.cast<String>(); // Handle the quizTitleSubstrings field
     creatorName = json['creatorName'];
     creatorUsername = json['creatorUsername'];
-    createdAt = json['createdAt'];
     creatorUserID = json['creatorUserID'];
     creatorImage = json['creatorImage'];
     quizDescription = json['quizDescription'];
@@ -80,15 +83,21 @@ class CreateQuizDataModel {
     visibility = json['visibility'];
     timer = json['timer'];
     difficulty = json['difficulty'];
+
+    createdAt = json['createdAt'] != null
+        ? Timestamp.fromMicrosecondsSinceEpoch(
+            json['createdAt'].microsecondsSinceEpoch)
+        : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['quizTitle'] = quizTitle;
+    data['quizTitleSubstrings'] =
+        quizTitleSubstrings; // Include quizTitleSubstrings in the serialization
     data['creatorName'] = creatorName;
     data['creatorUsername'] = creatorUsername;
     data['creatorUserID'] = creatorUserID;
-    data['createdAt'] = createdAt;
     data['creatorImage'] = creatorImage;
     data['quizDescription'] = quizDescription;
     if (quizzes != null) {
@@ -109,6 +118,10 @@ class CreateQuizDataModel {
     data['visibility'] = visibility;
     data['timer'] = timer;
     data['difficulty'] = difficulty;
+
+    if (createdAt != null) {
+      data['createdAt'] = createdAt?.toDate();
+    }
 
     return data;
   }

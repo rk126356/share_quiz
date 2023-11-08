@@ -85,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
           var uuid = const Uuid();
           var randomUuid = uuid.v4();
           var username = randomUuid.substring(0, 8);
+
           await userDoc.set({
             'displayName': user.displayName,
             'email': user.email,
@@ -92,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'avatarUrl': user.photoURL,
             'plan': 'free',
             'username': username,
+            'searchFields': username.toLowerCase(),
             'noOfFollowers': 0,
             'noOfFollowings': 0,
             'noOfQuizzes': 0,

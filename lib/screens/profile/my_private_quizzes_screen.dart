@@ -8,14 +8,14 @@ import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
-class MyQuizzesScreen extends StatefulWidget {
-  const MyQuizzesScreen({super.key});
+class MyPrivateQuizzesScreen extends StatefulWidget {
+  const MyPrivateQuizzesScreen({super.key});
 
   @override
-  State<MyQuizzesScreen> createState() => _MyQuizzesScreenState();
+  State<MyPrivateQuizzesScreen> createState() => _MyPrivateQuizzesScreenState();
 }
 
-class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
+class _MyPrivateQuizzesScreenState extends State<MyPrivateQuizzesScreen> {
   final List<CreateQuizDataModel> quizItems = [];
   bool _isLoading = false;
 
@@ -28,7 +28,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     final quizCollection = await firestore
         .collection('allQuizzes')
         .where('creatorUserID', isEqualTo: data.userData.uid)
-        .where('visibility', isEqualTo: 'Public')
+        .where('visibility', isEqualTo: 'Private')
         .orderBy('createdAt', descending: true)
         .get();
 
@@ -77,7 +77,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Quizzes'),
+        title: const Text('My Private Quizzes'),
       ),
       body: _isLoading
           ? const LoadingWidget()

@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/updateShare.dart';
 import 'package:share_quiz/data/quiz_item_data.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/create/templates/inside_template_screen.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -435,16 +437,38 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                                     bottomLeft: Radius.circular(4)),
                               ),
                               child: TextButton(
-                                onPressed: () {
-                                  data.userData.uid! ==
-                                              quizData.creatorUserID &&
-                                          quizData.visibility == 'Draft'
-                                      ? () {}
-                                      : data.userData.uid! !=
-                                                  quizData.creatorUserID &&
-                                              quizData.visibility == 'Draft'
-                                          ? () {}
-                                          : Navigator.push(
+                                onPressed: data.userData.uid! ==
+                                            quizData.creatorUserID &&
+                                        quizData.visibility == 'Draft'
+                                    ? () {
+                                        final template = QuizTemplate(
+                                            templateQuizzes: quizData.quizzes!,
+                                            templateQuizTitle:
+                                                quizData.quizTitle!,
+                                            templateQuizDescription:
+                                                quizData.quizDescription!,
+                                            templateQuizTags: quizData
+                                                .categories!
+                                                .join(", ")
+                                                .toString());
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  InsideTemplateScreen(
+                                                    template: template,
+                                                    quizID: quizData.quizID,
+                                                  )),
+                                        );
+                                      }
+                                    : data.userData.uid! !=
+                                                quizData.creatorUserID &&
+                                            quizData.visibility == 'Draft'
+                                        ? () {
+                                            print('My Quiz');
+                                          }
+                                        : () {
+                                            Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
@@ -454,7 +478,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                                                 ),
                                               ),
                                             );
-                                },
+                                          },
                                 style: TextButton.styleFrom(
                                   padding: const EdgeInsets.all(15),
                                 ),
@@ -549,7 +573,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                                 .showSnackBar(snackBar);
                           });
                         },
-                        title: 'ID: ${widget.quizID}',
+                        title: 'Code: ${widget.quizID}',
                         icon: const Icon(
                           Icons.content_copy,
                           color: Colors.white,
@@ -709,6 +733,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                           quizData.views.toString(), () {}),
                       statTile('Plays', CupertinoIcons.play_arrow,
                           quizData.taken.toString(), () {}),
+                      statTile('Wins', CupertinoIcons.check_mark_circled,
+                          quizData.wins.toString(), () {}),
                       statTile(
                           'Likes',
                           _isLiked
@@ -718,8 +744,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                           () {}),
                       statTile('Shares', CupertinoIcons.share,
                           quizData.shares.toString(), () {}),
-                      statTile('Wins', CupertinoIcons.check_mark_circled,
-                          quizData.wins.toString(), () {}),
                     ],
                   ),
                 ),

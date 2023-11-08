@@ -11,6 +11,7 @@ import 'package:share_quiz/screens/quiz/tabs/new_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/popular_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/random_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/recommended_quiz_tab.dart';
+import 'package:share_quiz/utils/search_popup.dart';
 import 'package:share_quiz/widgets/small_category_box_widget.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -28,12 +29,10 @@ class _QuizScreenState extends State<QuizScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            icon: const Icon(CupertinoIcons.chart_bar_alt_fill),
-            onPressed: () {},
-          ),
-          IconButton(
             icon: const Icon(CupertinoIcons.search),
-            onPressed: () {},
+            onPressed: () {
+              showSearchPopup(context);
+            },
           )
         ],
         backgroundColor: CupertinoColors.activeBlue,

@@ -1,14 +1,21 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
+import 'package:share_quiz/screens/search/enter_quiz_code_screen.dart';
+import 'package:share_quiz/screens/search/search_quizzes_screen.dart';
+import 'package:share_quiz/screens/search/search_tags_screen.dart';
+import 'package:share_quiz/screens/search/search_user_screen.dart';
+import 'package:share_quiz/utils/search_popup.dart';
 import 'package:share_quiz/widgets/all_tags_box_widget.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
+import 'package:share_quiz/widgets/search_popup_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({Key? key}) : super(key: key);
@@ -84,6 +91,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         title: const Text("Explore"),
+        actions: [
+          IconButton(
+              onPressed: () {
+                showSearchPopup(context);
+              },
+              icon: const Icon(CupertinoIcons.search))
+        ],
       ),
       body: _isLoading
           ? const LoadingWidget()
@@ -92,57 +106,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: <Widget>[
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    // Search bar and button
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          const Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: "Search User",
-                                border: InputBorder.none,
-                                icon: Icon(Icons.search, color: Colors.blue),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8.0),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              primary: Colors.blue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                            ),
-                            onPressed: () {
-                              // Handle the search button action here
-                            },
-                            child: const Text(
-                              "Search",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                     // Top Players This Month leaderboard
-                    const SizedBox(height: 22.0),
+                    const SizedBox(height: 8.0),
                     const Text(
                       "Top 3 Users",
                       textAlign: TextAlign.center,

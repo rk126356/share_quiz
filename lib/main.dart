@@ -77,40 +77,40 @@ class MyApp extends StatelessWidget {
             .copyWith(secondary: Colors.blue)
             .copyWith(background: Colors.white),
       ),
-      // home: StreamBuilder<User?>(
-      //   stream: FirebaseAuth.instance.authStateChanges(),
-      //   builder: (BuildContext context, AsyncSnapshot snapshot) {
-      //     if (snapshot.hasError) {
-      //       return Text('Error: ${snapshot.error}');
-      //     }
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     }
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      //     if (snapshot.connectionState == ConnectionState.active) {
-      //       if (snapshot.data == null) {
-      //         return const LoginScreen();
-      //       } else {
-      //         var user = FirebaseAuth.instance.currentUser!;
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.data == null) {
+              return const LoginScreen();
+            } else {
+              var user = FirebaseAuth.instance.currentUser!;
 
-      //         checkUser(user, context);
+              checkUser(user, context);
 
-      //         Provider.of<UserProvider>(context, listen: false)
-      //             .setUserData(UserModel(
-      //           uid: user.uid,
-      //           email: user.email,
-      //         ));
+              Provider.of<UserProvider>(context, listen: false)
+                  .setUserData(UserModel(
+                uid: user.uid,
+                email: user.email,
+              ));
 
-      //         return NavigationScreen();
-      //       }
-      //     }
-      //     return const LoginScreen();
-      //   },
-      // ),
-      initialRoute: '/app',
-      routes: <String, WidgetBuilder>{
-        '/app': (context) => NavigationScreen(),
-      },
+              return NavigationScreen();
+            }
+          }
+          return const LoginScreen();
+        },
+      ),
+      // initialRoute: '/app',
+      // routes: <String, WidgetBuilder>{
+      //   '/app': (context) => NavigationScreen(),
+      // },
       debugShowCheckedModeBanner: false,
     );
   }

@@ -146,6 +146,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               'dob': dobController.text,
               'gender': gender.text,
               'avatarUrl': avatarUrl,
+              'searchFields': username.text.toLowerCase(),
             });
 
             // Update the user data in the Provider.

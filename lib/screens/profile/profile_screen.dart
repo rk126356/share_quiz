@@ -10,6 +10,7 @@ import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_followers_screen.dart';
 import 'package:share_quiz/screens/profile/my_followings_screen.dart';
+import 'package:share_quiz/screens/profile/my_private_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -285,8 +286,8 @@ class _QuickLinks extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(CupertinoIcons.question,
-              color: AppColors.primaryColor),
+          leading:
+              const Icon(CupertinoIcons.cube, color: AppColors.primaryColor),
           title: const Text("My Quizzes"),
           trailing: const Icon(
             CupertinoIcons.forward,
@@ -296,6 +297,22 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+            );
+          },
+        ),
+        ListTile(
+          leading:
+              const Icon(CupertinoIcons.lock, color: AppColors.primaryColor),
+          title: const Text("Private Quizzes"),
+          trailing: const Icon(
+            CupertinoIcons.forward,
+            color: AppColors.primaryColor,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MyPrivateQuizzesScreen()),
             );
           },
         ),
@@ -332,18 +349,6 @@ class _QuickLinks extends StatelessWidget {
                 ),
               ),
             );
-          },
-        ),
-        ListTile(
-          leading: const Icon(CupertinoIcons.bookmark,
-              color: AppColors.primaryColor),
-          title: const Text("My Bookmarks"),
-          trailing: const Icon(
-            CupertinoIcons.forward,
-            color: AppColors.primaryColor,
-          ),
-          onTap: () {
-            // Handle navigation to the user's ranking.
           },
         ),
         ListTile(

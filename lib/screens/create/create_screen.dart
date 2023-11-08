@@ -8,6 +8,8 @@ import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
 import 'package:share_quiz/screens/create/templates/templates_screen.dart';
+import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
+import 'package:share_quiz/screens/profile/my_private_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
 import 'package:share_quiz/utils/remove_line_breakes.dart';
@@ -205,9 +207,7 @@ class _CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  // Function to show the edit question dialog
   Future<void> _showEditQuestionDialog(int index) async {
-    selectedQuestionIndex = index;
     Quizzes selectedQuestion = previewQuestions[index];
     String? selectedCorrectAns = selectedQuestion.correctAns;
     int choiceCount = selectedQuestion.choices!.length;
@@ -217,10 +217,11 @@ class _CreateScreenState extends State<CreateScreen> {
       choiceControllers[i].text = selectedQuestion.choices?[i];
     }
 
-    editQuestionPopup(choiceCount, selectedCorrectAns);
+    await editQuestionPopup(index, choiceCount, selectedCorrectAns);
   }
 
-  Future<void> editQuestionPopup(int choiceCount, String? selectedCorrectAns) {
+  Future<void> editQuestionPopup(
+      int index, int choiceCount, String? selectedCorrectAns) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -293,8 +294,7 @@ class _CreateScreenState extends State<CreateScreen> {
                     for (int i = 0; i < choiceCount; i++) {
                       if (choiceControllers[i].text.isEmpty) {
                         showDialog(
-                          context:
-                              context, // Make sure to have access to the context in your method.
+                          context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text("Error"),
@@ -304,8 +304,7 @@ class _CreateScreenState extends State<CreateScreen> {
                                 ElevatedButton(
                                   child: const Text("OK"),
                                   onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
+                                    Navigator.of(context).pop();
                                   },
                                 ),
                               ],
@@ -316,14 +315,16 @@ class _CreateScreenState extends State<CreateScreen> {
                       }
                     }
 
-                    previewQuestions.add(Quizzes(
+                    // Update the existing question with the edited data
+                    Quizzes updatedQuestion = Quizzes(
                       questionTitle: questionController.text,
                       choices: choiceControllers
                           .map((controller) => controller.text)
                           .toList()
                           .sublist(0, choiceCount),
                       correctAns: selectedCorrectAns,
-                    ));
+                    );
+                    previewQuestions[index] = updatedQuestion;
 
                     questionController.clear();
                     for (var controller in choiceControllers) {
@@ -333,18 +334,17 @@ class _CreateScreenState extends State<CreateScreen> {
                     Navigator.of(context).pop();
                   } else {
                     showDialog(
-                      context:
-                          context, // Make sure to have access to the context in your method.
+                      context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
                           title: const Text("Error"),
                           content: const Text(
-                              "Please fill in the Question, add at least 2 choices and select the correct answer."),
+                              "Please fill in the Question, add at least 2 choices, and select the correct answer."),
                           actions: <Widget>[
                             ElevatedButton(
                               child: const Text("OK"),
                               onPressed: () {
-                                Navigator.of(context).pop(); // Close the dialog
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -352,8 +352,6 @@ class _CreateScreenState extends State<CreateScreen> {
                       },
                     );
                   }
-
-                  setState(() {});
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -376,6 +374,18 @@ class _CreateScreenState extends State<CreateScreen> {
       setState(() {
         _isLoading = true;
       });
+
+      final quizTitle = quizData.quizTitle!.toLowerCase();
+
+      // Split the quiz title into substrings
+      List<String> quizTitleSubstrings = [];
+      for (int i = 0; i < quizTitle!.length; i++) {
+        for (int j = i + 1; j <= quizTitle!.length; j++) {
+          quizTitleSubstrings.add(quizTitle!.substring(i, j));
+        }
+      }
+
+      quizData.quizTitleSubstrings = quizTitleSubstrings;
       quizData.quizzes = previewQuestions;
       quizData.quizID = generateQuizID();
       quizData.likes = 0;
@@ -403,10 +413,28 @@ class _CreateScreenState extends State<CreateScreen> {
           .doc(quizData.quizID)
           .set(quizData.toJson());
 
-      await _firestore
-          .collection('users')
-          .doc(data.userData.uid)
-          .update({'noOfQuizzes': FieldValue.increment(1)});
+      List<dynamic>? categories = quizData.categories;
+
+      for (final category in categories!) {
+        await _firestore
+            .collection('allTags')
+            .doc(category)
+            .set({'category': category});
+      }
+
+      if (quizData.visibility == 'Public') {
+        await _firestore
+            .collection('users')
+            .doc(data.userData.uid)
+            .update({'noOfQuizzes': FieldValue.increment(1)});
+      }
+
+      if (quizData.visibility == 'Private') {
+        await _firestore
+            .collection('users')
+            .doc(data.userData.uid)
+            .update({'noOfQuizzesPrivate': FieldValue.increment(1)});
+      }
 
       previewQuestions.clear();
       questionController.clear();
@@ -416,10 +444,28 @@ class _CreateScreenState extends State<CreateScreen> {
       setState(() {
         _isLoading = false;
       });
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
-      );
+
+      if (quizData.visibility == 'Public') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+        );
+      }
+
+      if (quizData.visibility == 'Private') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MyPrivateQuizzesScreen()),
+        );
+      }
+
+      if (quizData.visibility == 'Draft') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyDraftQuizzesScreen()),
+        );
+      }
     } else {
       showDialog(
         context:
