@@ -3,23 +3,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/Models/user_model.dart';
+import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
-import 'package:share_quiz/screens/create/templates/templates_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
 import 'package:share_quiz/utils/remove_line_breakes.dart';
 
-class CreateScreen extends StatefulWidget {
-  const CreateScreen({Key? key}) : super(key: key);
+class InsideTemplateScreen extends StatefulWidget {
+  final QuizTemplate template;
+
+  const InsideTemplateScreen({
+    Key? key,
+    required this.template,
+  }) : super(key: key);
 
   @override
-  State<CreateScreen> createState() => _CreateScreenState();
+  State<InsideTemplateScreen> createState() => _InsideTemplateScreenState();
 }
 
-class _CreateScreenState extends State<CreateScreen> {
+class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
   CreateQuizDataModel quizData = CreateQuizDataModel();
   TextEditingController questionController = TextEditingController();
   List<TextEditingController> choiceControllers =
@@ -368,7 +372,7 @@ class _CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  saveQuiz(data, context) async {
+  void saveQuiz(data, context) async {
     if (quizData.quizTitle != null &&
         quizData.quizDescription != null &&
         previewQuestions.length > 1 &&
@@ -443,6 +447,19 @@ class _CreateScreenState extends State<CreateScreen> {
     }
   }
 
+  TextEditingController quizTitle = TextEditingController();
+  TextEditingController quizDescription = TextEditingController();
+  TextEditingController quizTags = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    previewQuestions = widget.template.templateQuizzes;
+    quizTitle.text = widget.template.templateQuizTitle;
+    quizDescription.text = widget.template.templateQuizDescription;
+    quizTags.text = widget.template.templateQuizTags;
+  }
+
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
@@ -510,18 +527,6 @@ class _CreateScreenState extends State<CreateScreen> {
         ),
       ),
       appBar: AppBar(
-        actions: [
-          ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const TemplatesScreen()),
-                );
-              },
-              icon: const Icon(Icons.file_copy),
-              label: const Text("Templates"))
-        ],
         title: const Text("Create Quiz"),
         backgroundColor: AppColors.primaryColor, // Dark purple app bar
       ),
@@ -531,6 +536,7 @@ class _CreateScreenState extends State<CreateScreen> {
           child: Column(
             children: [
               TextField(
+                controller: quizTitle,
                 maxLength: 70,
                 decoration: const InputDecoration(
                   icon: Icon(
@@ -546,6 +552,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 },
               ),
               TextField(
+                controller: quizDescription,
                 maxLines: null,
                 maxLength: 280,
                 decoration: const InputDecoration(
@@ -562,6 +569,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 },
               ),
               TextField(
+                controller: quizTags,
                 maxLength: 30,
                 decoration: const InputDecoration(
                   icon: Icon(
@@ -712,7 +720,7 @@ class _CreateScreenState extends State<CreateScreen> {
                         ),
                         child: InkWell(
                           onTap: () {
-                            _showEditQuestionDialog(index); // Edit button
+                            _showEditQuestionDialog(index);
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -747,8 +755,7 @@ class _CreateScreenState extends State<CreateScreen> {
                                   children: [
                                     IconButton(
                                       onPressed: () {
-                                        _showEditQuestionDialog(
-                                            index); // Edit button
+                                        _showEditQuestionDialog(index);
                                       },
                                       icon: const Icon(
                                         Icons.edit,

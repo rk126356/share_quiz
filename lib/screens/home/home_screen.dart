@@ -210,14 +210,14 @@ class _HomeScreenState extends State<HomeScreen>
               .where('visibility', isEqualTo: 'Public')
               .orderBy('createdAt', descending: true)
               .startAfter([lastDocumentForYou?['createdAt']])
-              .limit(11)
+              .limit(31)
               .get();
         } else {
           quizCollection = await firestore
               .collection('allQuizzes')
               .where('visibility', isEqualTo: 'Public')
               .orderBy('createdAt', descending: true)
-              .limit(11)
+              .limit(31)
               .get();
         }
 
@@ -292,25 +292,25 @@ class _HomeScreenState extends State<HomeScreen>
       email: user.email,
     ));
 
-    final userDoc =
-        FirebaseFirestore.instance.collection('users').doc(user.uid);
-    final userDocSnapshot = await userDoc.get();
+    // final userDoc =
+    //     FirebaseFirestore.instance.collection('users').doc(user.uid);
+    // final userDocSnapshot = await userDoc.get();
 
-    if (userDocSnapshot.exists) {
-      final userData = userDocSnapshot.data();
-      data.setUserData(UserModel(
-        name: userData?['displayName'],
-        uid: userData?['uid'],
-        bio: userData?['bio'],
-        phoneNumber: userData?['phoneNumber'],
-        dob: userData?['dob'],
-        gender: userData?['gender'],
-        language: userData?['language'],
-        avatarUrl: userData?['avatarUrl'],
-        username: userData?['username'],
-        email: userData?['email'],
-      ));
-    }
+    // if (userDocSnapshot.exists) {
+    //   final userData = userDocSnapshot.data();
+    //   data.setUserData(UserModel(
+    //     name: userData?['displayName'],
+    //     uid: userData?['uid'],
+    //     bio: userData?['bio'],
+    //     phoneNumber: userData?['phoneNumber'],
+    //     dob: userData?['dob'],
+    //     gender: userData?['gender'],
+    //     language: userData?['language'],
+    //     avatarUrl: userData?['avatarUrl'],
+    //     username: userData?['username'],
+    //     email: userData?['email'],
+    //   ));
+    // }
   }
 
   @override

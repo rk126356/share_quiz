@@ -1,75 +1,155 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:share_quiz/Models/quiz_data_class.dart';
-import 'package:share_quiz/screens/quiz/quiz_list_widget.dart';
+import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
-class PopularQuizTab extends StatelessWidget {
-  PopularQuizTab({
+class PopularQuizTab extends StatefulWidget {
+  const PopularQuizTab({
     super.key,
   });
-  final List<QuizDataClass> quizItems = [];
 
-  Future<void> fetchQuizzes() async {
+  @override
+  State<PopularQuizTab> createState() => _PopularQuizTabState();
+}
+
+class _PopularQuizTabState extends State<PopularQuizTab> {
+  final List<CreateQuizDataModel> quizItems = [];
+
+  int listLength = 6;
+
+  DocumentSnapshot? lastDocument;
+
+  bool noMoreQuizzes = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchQuizzes(false);
+  }
+
+  Future<void> fetchQuizzes(bool shouldReload) async {
     final firestore = FirebaseFirestore.instance;
 
-    // Query the "users" collection to get all users
-    final userCollection = await firestore.collection('users').get();
+    QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    quizItems.clear(); // Clear the list before adding new items
-
-    for (final userDoc in userCollection.docs) {
-      final userId = userDoc.id;
-
-      // Query the "myQuizzes" collection for each user
-      final quizCollection =
-          await firestore.collection('users/$userId/myQuizzes').get();
-
-      for (final quizDoc in quizCollection.docs) {
-        final quizData = quizDoc.data();
-        final quizItem = QuizDataClass(
-          quizID: quizData['quizID'],
-          title: quizData['quizTitle'],
-          // Add other properties as needed
-        );
-
-        quizItems.add(quizItem);
-      }
+    if (shouldReload) {
+      setState(() {});
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('views', descending: true)
+          .where('visibility', isEqualTo: 'Public')
+          .startAfter([lastDocument?['views']])
+          .limit(listLength)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('views', descending: true)
+          .where('visibility', isEqualTo: 'Public')
+          .limit(listLength)
+          .get();
     }
+
+    if (quizCollection.docs.isEmpty) {
+      setState(() {
+        noMoreQuizzes = true;
+      });
+      return;
+    }
+
+    lastDocument =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorImage: quizData['creatorImage'],
+        creatorName: quizData['creatorName'],
+        creatorUserID: quizData['creatorUserID'],
+      );
+
+      quizItems.add(quizItem);
+    }
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: fetchQuizzes(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Loading indicator or placeholder widget while fetching data
-          return const CircularProgressIndicator();
-        } else {
-          return SizedBox(
-            height: 200,
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
             child: ListView.builder(
               scrollDirection: Axis.vertical,
-              itemCount: quizItems.length,
+              itemCount: noMoreQuizzes ? 1 : quizItems.length,
               itemBuilder: (context, index) {
+                if (noMoreQuizzes) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        const Text('No more quizzes to load.'),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              noMoreQuizzes = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors
+                                .primaryColor, // Change the button color
+                          ),
+                          child: const Text('Reload',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                        const SizedBox(
+                          height: 25,
+                        )
+                      ],
+                    ),
+                  );
+                }
+                if (index + 1 == quizItems.length) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            fetchQuizzes(true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors
+                                .primaryColor, // Change the button color
+                          ),
+                          child: const Text('Load more...',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                        const SizedBox(
+                          height: 25,
+                        )
+                      ],
+                    ),
+                  );
+                }
                 return SizedBox(
                   width: 250,
-                  child: QuizList(
-                    title: quizItems[index].title ?? 'No Title',
-                    taken: quizItems[index].taken ?? 0,
-                    views: quizItems[index].views ?? 0,
-                    likes: quizItems[index].likes ?? 0,
-                    topScorerName: quizItems[index].topScorerName ?? 'No One',
-                    quizID: quizItems[index].quizID!,
-                    wins: quizItems[index].wins ?? 0,
-                    // Add other properties from QuizDataClass here
+                  child: QuizCardItems(
+                    quizData: quizItems[index],
                   ),
                 );
               },
             ),
-          );
-        }
-      },
+          ),
+        ],
+      ),
     );
   }
 }

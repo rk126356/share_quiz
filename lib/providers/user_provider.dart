@@ -7,9 +7,9 @@ class UserProvider extends ChangeNotifier {
     _initializeDataFromPrefs();
   }
   var _userData = UserModel(
-      // uid: 'HpWp3pyzgNWzvR2deGOmKPlBFKp2',
-      // email: 'rsk126356@gmail.com',
-      );
+    uid: 'HpWp3pyzgNWzvR2deGOmKPlBFKp2',
+    email: 'rsk126356@gmail.com',
+  );
   bool _isFirstLaunch = true;
   bool _isNewOpen = true;
   bool _isBioAdded = false;

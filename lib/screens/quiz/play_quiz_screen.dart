@@ -9,6 +9,7 @@ import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
+import 'package:share_quiz/widgets/loading_widget.dart';
 
 class PlayQuizScreen extends StatefulWidget {
   final CreateQuizDataModel quizData;
@@ -29,8 +30,12 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   late int secondsRemaining;
   int secondsTotal = 0;
   int? noOfAttempts = 0;
+  bool _isLoading = false;
 
   fetchScores() async {
+    setState(() {
+      _isLoading = true;
+    });
     var userDataProvider =
         Provider.of<UserProvider>(context, listen: false).userData;
     final firestore = FirebaseFirestore.instance;
@@ -61,9 +66,15 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
         noOfAttempts = 0;
       }
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void updatePlays() async {
+    setState(() {
+      _isLoading = true;
+    });
     var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
@@ -82,6 +93,9 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
           'attemptNo': noOfAttempts ?? 0,
         },
       ]),
+    });
+    setState(() {
+      _isLoading = false;
     });
   }
 
@@ -188,157 +202,161 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
         backgroundColor: AppColors.primaryColor,
         title: const Text('Play Quiz'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [CupertinoColors.activeBlue, Colors.blue],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  // Styling for the timer box
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 3,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    widget.quizData.timer == 999
-                        ? 'Unlimited Time'
-                        : 'Time Remaining: ${secondsRemaining.toString()} seconds',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
+      body: _isLoading
+          ? LoadingWidget()
+          : Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [CupertinoColors.activeBlue, Colors.blue],
                 ),
-                Card(
-                  margin: const EdgeInsets.all(16),
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Question ${currentQuestionIndex + 1} of ${widget.quizData.quizzes!.length}',
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        // Styling for the timer box
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blue,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 3,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          widget.quizData.quizzes![currentQuestionIndex]
-                              .questionTitle!,
-                          textAlign: TextAlign.center,
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          widget.quizData.timer == 999
+                              ? 'Unlimited Time'
+                              : 'Time Remaining: ${secondsRemaining.toString()} seconds',
                           style: const TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                        Column(
-                          children: widget
-                              .quizData.quizzes![currentQuestionIndex].choices!
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                            final index = entry.key;
-                            final choice = entry.value;
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: Ink(
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {
-                                      checkAnswer(index);
-                                    },
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Center(
-                                        child: Text(
-                                          choice,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
+                      ),
+                      Card(
+                        margin: const EdgeInsets.all(16),
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Question ${currentQuestionIndex + 1} of ${widget.quizData.quizzes!.length}',
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                widget.quizData.quizzes![currentQuestionIndex]
+                                    .questionTitle!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontSize: 25, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 20),
+                              Column(
+                                children: widget.quizData
+                                    .quizzes![currentQuestionIndex].choices!
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  final index = entry.key;
+                                  final choice = entry.value;
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: Ink(
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: InkWell(
+                                          onTap: () {
+                                            checkAnswer(index);
+                                          },
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Center(
+                                              child: Text(
+                                                choice,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }).toList(),
                               ),
-                            );
-                          }).toList(),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  // Styling for the timer box
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 3,
-                        offset: const Offset(0, 2),
+                      ),
+                      Container(
+                        // Styling for the timer box
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blue,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 3,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Correct Answer: $score',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: CupertinoColors.activeBlue,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 30,
                       ),
                     ],
                   ),
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Correct Answer: $score',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: CupertinoColors.activeBlue,
-                    ),
-                  ),
                 ),
-                const SizedBox(
-                  height: 30,
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
