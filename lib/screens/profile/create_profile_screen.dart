@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
@@ -322,8 +323,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                 height: 125,
                                 fit: BoxFit.cover,
                               )
-                            : Image.asset(
-                                pickedImage!.path,
+                            : Image.file(
+                                File(pickedImage!.path),
                                 width: 125,
                                 height: 125,
                                 fit: BoxFit.cover,
@@ -362,13 +363,19 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Username',
                         prefixIcon: Icon(
-                          CupertinoIcons.number,
+                          CupertinoIcons.at,
                           color: AppColors.primaryColor,
                         ),
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(
+                            r'[a-zA-Z0-9_]+')), // Only allow letters, numbers, and underscores
+                        LengthLimitingTextInputFormatter(
+                            16), // Limit the length to 16 characters
+                      ],
                       validator: (value) {
-                        if (value!.length > 16) {
-                          return 'Username is too long (max 16 characters)';
+                        if (value!.isEmpty) {
+                          return 'Username is required';
                         }
                         return null; // No error
                       },
@@ -382,6 +389,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           color: AppColors.primaryColor,
                         ),
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(
+                            r'[a-zA-Z0-9_]+')), // Only allow letters, numbers, and underscores
+                        LengthLimitingTextInputFormatter(
+                            20), // Limit the length to 16 characters
+                      ],
                       validator: (value) {
                         if (value!.length > 20) {
                           return 'Full Name is too long (max 20 characters)';

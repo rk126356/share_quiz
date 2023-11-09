@@ -9,7 +9,9 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
-import 'package:share_quiz/controllers/updateShare.dart';
+import 'package:share_quiz/controllers/update_share_firebase.dart';
+import 'package:share_quiz/controllers/update_plays_firebase.dart';
+import 'package:share_quiz/controllers/update_views_firebase.dart';
 import 'package:share_quiz/data/quiz_item_data.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/inside_template_screen.dart';
@@ -110,6 +112,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
             );
           }).toList(),
         );
+
+        updateViews(widget.quizID, data.creatorUserID);
         if (_shouldPlay) {
           // ignore: use_build_context_synchronously
           Navigator.push(
@@ -227,6 +231,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         await likedQuizRef.add({
           'quizID': quizID,
           'categories': categories,
+          'createdAt': Timestamp.now(),
         });
 
         if (_isDisliked) {
@@ -288,6 +293,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         await dislikedQuizRef.add({
           'quizID': quizID,
           'categories': categories,
+          'createdAt': Timestamp.now(),
         });
         if (_isLiked) {
           if (currentLikes > 0) {

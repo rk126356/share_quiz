@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/controllers/update_views_firebase.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
@@ -30,46 +31,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-
-  // Function to handle search button press
-  void onSearchButtonPressed() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Search by Quiz Code'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter your Quiz Code',
-                  helperText: 'Ex: 61dc8dfe',
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  String searchText = _searchController.text;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => InsideQuizScreen(
-                              quizID: searchText,
-                            )),
-                  );
-                },
-                child: const Text('Start Quiz'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   late TabController _tabController;
   bool _isLoading = false;
   bool _isForYouTab = true;
@@ -90,88 +51,121 @@ class _HomeScreenState extends State<HomeScreen>
     final firestore = FirebaseFirestore.instance;
     var user = FirebaseAuth.instance.currentUser;
 
-    try {
-      if (!_isForYouTab) {
-        QuerySnapshot<Map<String, dynamic>> followingRef;
-        QuerySnapshot<Map<String, dynamic>> quizCollection;
+    if (!_isForYouTab) {
+      QuerySnapshot<Map<String, dynamic>> followingRef;
 
-        if (dontClear) {
-          followingRef = await firestore
-              .collection('users/${user?.uid}/myFollowings')
-              .orderBy('createdAt')
-              .startAt([lastDocumentFollowings?['createdAt']])
-              .limit(5)
-              .get();
-          quizCollection = await firestore
-              .collection('allQuizzes')
-              .where('creatorUserID',
-                  isEqualTo: followingRef.docs.first['userID'])
-              .where('visibility', isEqualTo: 'Public')
-              .orderBy('createdAt', descending: true)
-              .startAfter([lastFollowingQuiz?['createdAt']])
-              .limit(5)
-              .get();
-        } else {
-          followingRef = await firestore
-              .collection('users/${user?.uid}/myFollowings')
-              .orderBy('createdAt')
-              .limit(5)
-              .get();
-          quizCollection = await firestore
-              .collection('allQuizzes')
-              .where('creatorUserID',
-                  isEqualTo: followingRef.docs.first['userID'])
-              .where('visibility', isEqualTo: 'Public')
-              .orderBy('createdAt', descending: true)
-              .limit(5)
-              .get();
+      if (dontClear) {
+        followingRef = await firestore
+            .collection('users/${user?.uid}/myFollowings')
+            .orderBy('createdAt')
+            .startAt([lastDocumentFollowings?['createdAt']])
+            .limit(5)
+            .get();
+      } else {
+        followingRef = await firestore
+            .collection('users/${user?.uid}/myFollowings')
+            .orderBy('createdAt')
+            .limit(5)
+            .get();
+      }
+
+      final List<CreateQuizDataModel> newQuizItems = [];
+
+      for (final docs in followingRef.docs) {
+        final userData = docs.data();
+        if (kDebugMode) {
+          print(userData['userID']);
         }
 
+        lastDocumentFollowings =
+            followingRef.docs.isNotEmpty ? followingRef.docs.last : null;
+
+        if (kDebugMode) {
+          print(lastDocumentFollowings?['userID']);
+        }
+
+        try {
+          final QuerySnapshot<Map<String, dynamic>> quizCollection;
+
+          if (dontClear) {
+            quizCollection = await firestore
+                .collection('allQuizzes')
+                .where('creatorUserID', isEqualTo: userData['userID'])
+                .where('visibility', isEqualTo: 'Public')
+                .orderBy('createdAt', descending: true)
+                .startAfter([lastFollowingQuiz?['createdAt']])
+                .limit(5)
+                .get();
+          } else {
+            quizCollection = await firestore
+                .collection('allQuizzes')
+                .where('creatorUserID', isEqualTo: userData['userID'])
+                .where('visibility', isEqualTo: 'Public')
+                .orderBy('createdAt', descending: true)
+                .limit(5)
+                .get();
+          }
+
+          lastFollowingQuiz =
+              quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+          for (final quizDoc in quizCollection.docs) {
+            final quizData = quizDoc.data();
+
+            final userCollection = await firestore
+                .collection('users')
+                .doc(quizData['creatorUserID'])
+                .get();
+
+            final userData = userCollection.data();
+
+            final quizItem = CreateQuizDataModel(
+              quizID: quizData['quizID'],
+              creatorName: userData?['displayName'],
+              creatorUsername: userData?['username'],
+              creatorImage: userData?['avatarUrl'],
+              quizDescription: quizData['quizDescription'],
+              quizTitle: quizData['quizTitle'],
+              likes: quizData['likes'],
+              views: quizData['views'],
+              taken: quizData['taken'],
+              wins: quizData['wins'],
+              shares: quizData['shares'],
+              topScorerImage: quizData['topScorerImage'],
+              topScorerName: quizData['topScorerName'],
+              topScorerUid: quizData['topScorerUid'],
+              categories: quizData['categories'],
+              noOfQuestions: quizData['noOfQuestions'],
+              creatorUserID: quizData['creatorUserID'],
+              createdAt: quizData['createdAt'],
+              timer: quizData['timer'],
+              difficulty: quizData['difficulty'],
+              visibility: quizData['visibility'],
+            );
+
+            newQuizItems.add(quizItem);
+          }
+
+          setState(() {
+            if (!dontClear) {
+              followingQuizzes.clear();
+            }
+            followingQuizzes.addAll(newQuizItems);
+            followingQuizzes
+                .sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+          });
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error fetching following quizzes: $e");
+          }
+        }
+      }
+      // for you page is starting from here...
+    } else {
+      try {
         final List<CreateQuizDataModel> newQuizItems = [];
 
-        for (final quizDoc in quizCollection.docs) {
-          final quizData = quizDoc.data();
-          final userData = (await firestore
-                  .collection('users')
-                  .doc(quizData['creatorUserID'])
-                  .get())
-              .data();
-
-          final quizItem = CreateQuizDataModel(
-            quizID: quizData['quizID'],
-            creatorName: userData?['displayName'],
-            creatorUsername: userData?['username'],
-            creatorImage: userData?['avatarUrl'],
-            quizDescription: quizData['quizDescription'],
-            quizTitle: quizData['quizTitle'],
-            likes: quizData['likes'],
-            views: quizData['views'],
-            taken: quizData['taken'],
-            wins: quizData['wins'],
-            shares: quizData['shares'],
-            topScorerImage: quizData['topScorerImage'],
-            topScorerName: quizData['topScorerName'],
-            topScorerUid: quizData['topScorerUid'],
-            categories: quizData['categories'],
-            noOfQuestions: quizData['noOfQuestions'],
-            creatorUserID: quizData['creatorUserID'],
-            createdAt: quizData['createdAt'],
-            timer: quizData['timer'],
-            difficulty: quizData['difficulty'],
-          );
-
-          newQuizItems.add(quizItem);
-        }
-
-        setState(() {
-          if (!dontClear) {
-            followingQuizzes.clear();
-          }
-          followingQuizzes.addAll(newQuizItems);
-          followingQuizzes.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
-        });
-      } else {
-        QuerySnapshot<Map<String, dynamic>> quizCollection;
+        final QuerySnapshot<Map<String, dynamic>> quizCollection;
 
         if (dontClear) {
           quizCollection = await firestore
@@ -190,15 +184,18 @@ class _HomeScreenState extends State<HomeScreen>
               .get();
         }
 
-        final List<CreateQuizDataModel> newQuizItems = [];
+        lastDocumentForYou =
+            quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
         for (final quizDoc in quizCollection.docs) {
           final quizData = quizDoc.data();
-          final userData = (await firestore
-                  .collection('users')
-                  .doc(quizData['creatorUserID'])
-                  .get())
-              .data();
+
+          final userCollection = await firestore
+              .collection('users')
+              .doc(quizData['creatorUserID'])
+              .get();
+
+          final userData = userCollection.data();
 
           final quizItem = CreateQuizDataModel(
             quizID: quizData['quizID'],
@@ -233,10 +230,10 @@ class _HomeScreenState extends State<HomeScreen>
 
           forYouQuizzes.addAll(newQuizItems);
         });
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error fetching quizzes: $e");
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching for you quizzes: $e");
+        }
       }
     }
 
@@ -260,13 +257,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     final userDoc =
         FirebaseFirestore.instance.collection('users').doc(user.uid);
-
     final userDocSnapshot = await userDoc.get();
-
-    final userData = userDocSnapshot.data();
-
-    userDoc.update(
-        {'searchFields': userData!['username'].toString().toLowerCase()});
 
     if (userDocSnapshot.exists) {
       final userData = userDocSnapshot.data();
@@ -588,7 +579,7 @@ class QuizTikTokItems extends StatefulWidget {
 
 class _QuizTikTokItemsState extends State<QuizTikTokItems>
     with SingleTickerProviderStateMixin {
-  updateViews() async {
+  updateViewsHere() async {
     final firestore = FirebaseFirestore.instance;
 
     final quizCollection =
@@ -602,7 +593,8 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
   @override
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
-      updateViews();
+      updateViewsHere();
+      updateViews(widget.quizID, widget.creatorUserID);
       isViewsUpdated = true;
     }
 

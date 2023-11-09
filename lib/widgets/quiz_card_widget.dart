@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/fonts.dart';
-import 'package:share_quiz/controllers/updateShare.dart';
+import 'package:share_quiz/controllers/update_share_firebase.dart';
+import 'package:share_quiz/controllers/update_views_firebase.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 
@@ -26,7 +27,7 @@ class _QuizCardItemsState extends State<QuizCardItems> {
   bool _isLiked = false;
   bool _isDisliked = false;
 
-  updateViews() async {
+  updateViewsHere() async {
     final firestore = FirebaseFirestore.instance;
 
     final quizCollection = await firestore
@@ -134,6 +135,7 @@ class _QuizCardItemsState extends State<QuizCardItems> {
         await likedQuizRef.add({
           'quizID': quizID,
           'categories': categories1,
+          'createdAt': Timestamp.now(),
         });
 
         if (_isDisliked) {
@@ -161,7 +163,8 @@ class _QuizCardItemsState extends State<QuizCardItems> {
     if (!isViewsUpdated) {
       checkIfQuizIsLiked();
       checkIfQuizIsDisliked();
-      updateViews();
+      updateViewsHere();
+      updateViews(widget.quizData.quizID, widget.quizData.creatorUserID);
       isViewsUpdated = true;
     }
 

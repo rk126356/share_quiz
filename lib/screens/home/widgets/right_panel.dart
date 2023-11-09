@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_quiz/controllers/update_share_firebase.dart';
 import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 
@@ -37,35 +38,6 @@ class RightPanel extends StatefulWidget {
 }
 
 class _RightPanelState extends State<RightPanel> {
-  Future<void> updateShare() async {
-    final firestore = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
-
-    final uid = user?.uid;
-    final sharedQuizRef = firestore.collection('users/$uid/mySharedQuizzes');
-    final sharedQuizSnapshot =
-        await sharedQuizRef.where('quizID', isEqualTo: widget.quizID).get();
-
-    final bool isShared = sharedQuizSnapshot.docs.isNotEmpty;
-
-    if (!isShared) {
-      await sharedQuizRef.add({
-        'quizID': widget.quizID,
-      });
-
-      final quizCollection = await firestore
-          .collection('users/${widget.creatorUserID}/myQuizzes')
-          .doc(widget.quizID)
-          .get();
-
-      final quizDataMap = quizCollection.data();
-
-      int currentShare = quizDataMap?['shares'] ?? 0;
-
-      await quizCollection.reference.update({'shares': currentShare + 1});
-    }
-  }
-
   bool _isLiked = false;
   bool _isDisliked = false;
   bool _isLoading = false;
@@ -168,6 +140,7 @@ class _RightPanelState extends State<RightPanel> {
         await likedQuizRef.add({
           'quizID': quizID,
           'categories': categories1,
+          'createdAt': Timestamp.now(),
         });
 
         if (_isDisliked) {
@@ -271,7 +244,9 @@ class _RightPanelState extends State<RightPanel> {
                           ),
                         ),
                   InkWell(
-                    onTap: updateShare,
+                    onTap: () {
+                      updateShare(widget.quizID, widget.creatorUserID);
+                    },
                     child: Column(
                       children: [
                         const Icon(

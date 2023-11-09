@@ -10,6 +10,7 @@ import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_followers_screen.dart';
 import 'package:share_quiz/screens/profile/my_followings_screen.dart';
+import 'package:share_quiz/screens/profile/my_history_screen.dart';
 import 'package:share_quiz/screens/profile/my_private_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -302,22 +303,6 @@ class _QuickLinks extends StatelessWidget {
         ),
         ListTile(
           leading:
-              const Icon(CupertinoIcons.lock, color: AppColors.primaryColor),
-          title: const Text("Private Quizzes"),
-          trailing: const Icon(
-            CupertinoIcons.forward,
-            color: AppColors.primaryColor,
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MyPrivateQuizzesScreen()),
-            );
-          },
-        ),
-        ListTile(
-          leading:
               const Icon(CupertinoIcons.folder, color: AppColors.primaryColor),
           title: const Text("My Drafts"),
           trailing: const Icon(
@@ -344,9 +329,7 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateProfileScreen(
-                  isEdit: true,
-                ),
+                builder: (context) => const MyHistoryScreen(),
               ),
             );
           },

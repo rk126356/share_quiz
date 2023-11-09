@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/controllers/update_plays_firebase.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -56,7 +57,9 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
             }
           }).toList());
 
-          print(noOfAttempts);
+          if (kDebugMode) {
+            print(noOfAttempts);
+          }
         } catch (e) {
           if (kDebugMode) {
             print(e);
@@ -71,7 +74,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
     });
   }
 
-  void updatePlays() async {
+  void updatePlaysAndScore() async {
     setState(() {
       _isLoading = true;
     });
@@ -122,7 +125,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       if (quizTimer != null && quizTimer!.isActive) {
         quizTimer!.cancel();
       }
-      updatePlays();
+      updatePlaysAndScore();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => InsideQuizScoreBoardScreen(
@@ -188,6 +191,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   @override
   void initState() {
     super.initState();
+    updatePlays(widget.quizData!.quizID, widget.quizData.creatorUserID);
     startTimeTaken();
     fetchScores();
     if (widget.quizData.timer != 999) {
