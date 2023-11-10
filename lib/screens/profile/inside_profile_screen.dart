@@ -365,7 +365,9 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const MyQuizzesScreen()),
+                                builder: (context) => const MyQuizzesScreen(
+                                      initialIndex: 0,
+                                    )),
                           );
                         },
                         heroTag: 'follow',

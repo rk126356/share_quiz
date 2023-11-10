@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
 class AllQuizTab extends StatefulWidget {
@@ -19,6 +20,8 @@ class _AllQuizTabState extends State<AllQuizTab> {
   int listLength = 6;
 
   DocumentSnapshot? lastDocument;
+  bool _isLoading = false;
+  bool _isButtonLoading = false;
 
   bool noMoreQuizzes = false;
 
@@ -28,13 +31,20 @@ class _AllQuizTabState extends State<AllQuizTab> {
     fetchQuizzes(false);
   }
 
-  Future<void> fetchQuizzes(bool shouldReload) async {
+  Future<void> fetchQuizzes(bool next) async {
+    if (quizItems.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     final firestore = FirebaseFirestore.instance;
 
     QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    if (shouldReload) {
-      setState(() {});
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
       quizCollection = await firestore
           .collection('allQuizzes')
           .orderBy('createdAt', descending: true)
@@ -54,6 +64,8 @@ class _AllQuizTabState extends State<AllQuizTab> {
     if (quizCollection.docs.isEmpty) {
       setState(() {
         noMoreQuizzes = true;
+        _isButtonLoading = false;
+        _isLoading = false;
       });
       return;
     }
@@ -79,77 +91,85 @@ class _AllQuizTabState extends State<AllQuizTab> {
 
       quizItems.add(quizItem);
     }
-    setState(() {});
+    setState(() {
+      _isLoading = false;
+      _isButtonLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              itemCount: noMoreQuizzes ? 1 : quizItems.length,
-              itemBuilder: (context, index) {
-                if (noMoreQuizzes) {
-                  return Center(
-                    child: Column(
-                      children: [
-                        const Text('No more quizzes to load.'),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              noMoreQuizzes = false;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors
-                                .primaryColor, // Change the button color
+      body: _isLoading
+          ? const LoadingWidget()
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    itemCount: noMoreQuizzes ? 1 : quizItems.length + 1,
+                    itemBuilder: (context, index) {
+                      if (noMoreQuizzes) {
+                        return Center(
+                          child: Column(
+                            children: [
+                              const Text('No more quizzes to load.'),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    noMoreQuizzes = false;
+                                  });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors
+                                      .primaryColor, // Change the button color
+                                ),
+                                child: const Text('Reload',
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                              const SizedBox(
+                                height: 25,
+                              )
+                            ],
                           ),
-                          child: const Text('Reload',
-                              style: TextStyle(color: Colors.white)),
+                        );
+                      }
+                      if (index == quizItems.length) {
+                        return Center(
+                          child: _isButtonLoading
+                              ? const CircularProgressIndicator()
+                              : Column(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        fetchQuizzes(true);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors
+                                            .primaryColor, // Change the button color
+                                      ),
+                                      child: const Text('Load more...',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                    ),
+                                    const SizedBox(
+                                      height: 25,
+                                    )
+                                  ],
+                                ),
+                        );
+                      }
+                      return SizedBox(
+                        width: 250,
+                        child: QuizCardItems(
+                          quizData: quizItems[index],
                         ),
-                        const SizedBox(
-                          height: 25,
-                        )
-                      ],
-                    ),
-                  );
-                }
-                if (index + 1 == quizItems.length) {
-                  return Center(
-                    child: Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            fetchQuizzes(true);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors
-                                .primaryColor, // Change the button color
-                          ),
-                          child: const Text('Load more...',
-                              style: TextStyle(color: Colors.white)),
-                        ),
-                        const SizedBox(
-                          height: 25,
-                        )
-                      ],
-                    ),
-                  );
-                }
-                return SizedBox(
-                  width: 250,
-                  child: QuizCardItems(
-                    quizData: quizItems[index],
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

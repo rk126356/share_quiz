@@ -104,7 +104,7 @@ class MyApp extends StatelessWidget {
       ],
     );
 
-    if (!kDebugMode) {
+    if (kDebugMode) {
       return MaterialApp(
         title: 'ShareQuiz',
         theme: ThemeData(

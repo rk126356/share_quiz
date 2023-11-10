@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
-import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 

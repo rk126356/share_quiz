@@ -439,10 +439,35 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
       setState(() {
         _isLoading = false;
       });
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
-      );
+      if (quizData.visibility == 'Public') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 0,
+                  )),
+        );
+      }
+
+      if (quizData.visibility == 'Private') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 1,
+                  )),
+        );
+      }
+
+      if (quizData.visibility == 'Draft') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 2,
+                  )),
+        );
+      }
     } else {
       showDialog(
         context:

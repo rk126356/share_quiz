@@ -448,7 +448,10 @@ class _CreateScreenState extends State<CreateScreen> {
       if (quizData.visibility == 'Public') {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+          MaterialPageRoute(
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 0,
+                  )),
         );
       }
 
@@ -456,14 +459,19 @@ class _CreateScreenState extends State<CreateScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => const MyPrivateQuizzesScreen()),
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 1,
+                  )),
         );
       }
 
       if (quizData.visibility == 'Draft') {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MyDraftQuizzesScreen()),
+          MaterialPageRoute(
+              builder: (context) => const MyQuizzesScreen(
+                    initialIndex: 2,
+                  )),
         );
       }
     } else {

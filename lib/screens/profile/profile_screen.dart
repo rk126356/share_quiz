@@ -198,7 +198,9 @@ class _ProfileStats extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const MyQuizzesScreen(),
+                    builder: (context) => const MyQuizzesScreen(
+                      initialIndex: 0,
+                    ),
                   ),
                 );
               },
@@ -294,10 +296,14 @@ class _QuickLinks extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const MyQuizzesScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const MyQuizzesScreen(
+                        initialIndex: 0,
+                      )),
             );
           },
         ),
+
         ListTile(
           leading:
               const Icon(CupertinoIcons.folder, color: AppColors.primaryColor),
@@ -310,7 +316,9 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const MyDraftQuizzesScreen()),
+                  builder: (context) => const MyQuizzesScreen(
+                        initialIndex: 2,
+                      )),
             );
           },
         ),

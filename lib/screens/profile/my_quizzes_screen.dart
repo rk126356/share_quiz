@@ -2,15 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
-import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
 class MyQuizzesScreen extends StatefulWidget {
-  const MyQuizzesScreen({super.key});
+  final int initialIndex;
+  const MyQuizzesScreen({super.key, required this.initialIndex});
 
   @override
   State<MyQuizzesScreen> createState() => _MyQuizzesScreenState();
@@ -20,24 +19,66 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   final List<CreateQuizDataModel> quizItemsPublic = [];
   final List<CreateQuizDataModel> quizItemsPrivate = [];
   final List<CreateQuizDataModel> quizItemsDrafts = [];
-  bool _isLoading = false;
 
-  Future<void> fetchQuizzesPublic() async {
+  DocumentSnapshot? lastDocumentPublic;
+  DocumentSnapshot? lastDocumentPrivate;
+  DocumentSnapshot? lastDocumentDrafts;
+
+  int listLength = 6;
+
+  bool _isLoading = false;
+  bool _isButtonLoading = false;
+  bool noMoreQuizzesPublic = false;
+  bool noMoreQuizzesPrivate = false;
+  bool noMoreQuizzesDrafts = false;
+
+  Future<void> fetchQuizzesPublic(bool next) async {
+    if (quizItemsPublic.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    quizItemsPublic.clear();
+    QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    final quizCollection = await firestore
-        .collection('allQuizzes')
-        .where('creatorUserID', isEqualTo: data.userData.uid)
-        .where('visibility', isEqualTo: 'Public')
-        .orderBy('createdAt', descending: true)
-        .get();
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Public')
+          .startAfter([lastDocumentPublic?['createdAt']])
+          .limit(listLength)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Public')
+          .orderBy('createdAt', descending: true)
+          .limit(listLength)
+          .get();
+    }
+
+    if (quizCollection.docs.isEmpty) {
+      setState(() {
+        noMoreQuizzesPublic = true;
+        _isButtonLoading = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    lastDocumentPublic =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
-
       final quizItem = CreateQuizDataModel(
         quizID: quizData['quizID'],
         quizDescription: quizData['quizDescription'],
@@ -54,24 +95,60 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
       quizItemsPublic.add(quizItem);
     }
+
+    setState(() {
+      _isLoading = false;
+      _isButtonLoading = false;
+    });
   }
 
-  Future<void> fetchQuizzesPrivate() async {
+  Future<void> fetchQuizzesPrivate(bool next) async {
+    if (quizItemsPrivate.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    quizItemsPrivate.clear();
+    QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    final quizCollection = await firestore
-        .collection('allQuizzes')
-        .where('creatorUserID', isEqualTo: data.userData.uid)
-        .where('visibility', isEqualTo: 'Private')
-        .orderBy('createdAt', descending: true)
-        .get();
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Private')
+          .startAfter([lastDocumentPrivate?['createdAt']])
+          .limit(listLength)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Private')
+          .orderBy('createdAt', descending: true)
+          .limit(listLength)
+          .get();
+    }
+
+    if (quizCollection.docs.isEmpty) {
+      setState(() {
+        noMoreQuizzesPrivate = true;
+        _isButtonLoading = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    lastDocumentPrivate =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
-
       final quizItem = CreateQuizDataModel(
         quizID: quizData['quizID'],
         quizDescription: quizData['quizDescription'],
@@ -88,23 +165,60 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
       quizItemsPrivate.add(quizItem);
     }
+
+    setState(() {
+      _isLoading = false;
+      _isButtonLoading = false;
+    });
   }
 
-  Future<void> fetchQuizzesDraft() async {
+  Future<void> fetchQuizzesDraft(bool next) async {
+    if (quizItemsDrafts.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    quizItemsDrafts.clear();
+    QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    final quizCollection = await firestore
-        .collection('allQuizzes')
-        .where('creatorUserID', isEqualTo: data.userData.uid)
-        .where('visibility', isEqualTo: 'Draft')
-        .get();
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Draft')
+          .startAfter([lastDocumentDrafts?['createdAt']])
+          .limit(listLength)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .where('creatorUserID', isEqualTo: data.userData.uid)
+          .where('visibility', isEqualTo: 'Draft')
+          .orderBy('createdAt', descending: true)
+          .limit(listLength)
+          .get();
+    }
+
+    if (quizCollection.docs.isEmpty) {
+      setState(() {
+        noMoreQuizzesDrafts = true;
+        _isButtonLoading = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    lastDocumentDrafts =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
-
       final quizItem = CreateQuizDataModel(
         quizID: quizData['quizID'],
         quizDescription: quizData['quizDescription'],
@@ -121,6 +235,11 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
       quizItemsDrafts.add(quizItem);
     }
+
+    setState(() {
+      _isLoading = false;
+      _isButtonLoading = false;
+    });
   }
 
   Future<void> deleteQuiz(String quizID, String what) async {
@@ -152,139 +271,250 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.initialIndex == 0) {
+      if (quizItemsPublic.isEmpty) {
+        fetchQuizzesPublic(false);
+      }
+    }
+    if (widget.initialIndex == 1) {
+      if (quizItemsPrivate.isEmpty) {
+        fetchQuizzesPrivate(false);
+      }
+    }
+    if (widget.initialIndex == 2) {
+      if (quizItemsDrafts.isEmpty) {
+        fetchQuizzesDraft(false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DefaultTabController(
+      initialIndex: widget.initialIndex,
       length: 3,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.primaryColor,
           title: const Text('My Quizzes'),
-          bottom: const TabBar(
-            tabs: [
+          bottom: TabBar(
+            onTap: (tab) {
+              if (tab == 0) {
+                if (quizItemsPublic.isEmpty) {
+                  fetchQuizzesPublic(false);
+                }
+              }
+              if (tab == 1) {
+                if (quizItemsPrivate.isEmpty) {
+                  fetchQuizzesPrivate(false);
+                }
+              }
+              if (tab == 2) {
+                if (quizItemsDrafts.isEmpty) {
+                  fetchQuizzesDraft(false);
+                }
+              }
+            },
+            tabs: const [
               Tab(text: 'Public'),
               Tab(text: 'Private'),
-              Tab(
-                text: 'Drafts',
-              )
+              Tab(text: 'Drafts')
             ],
           ),
         ),
-        body: TabBarView(children: [
-          FutureBuilder(
-            future: fetchQuizzesPublic(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: LoadingWidget());
-              } else {
-                if (quizItemsPublic.isEmpty) {
-                  return const Center(
-                    child: Text('You have not created any quiz yet.'),
-                  );
-                } else {
-                  return SizedBox(
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: quizItemsPublic.length,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                bottom: quizItemsPublic.length - 1 == index
-                                    ? 30.0
-                                    : 0.0),
-                            child: MyQuizCardItems(
-                              onDelete: () {
-                                deleteQuiz(
-                                    quizItemsPublic[index].quizID!, 'Public');
+        body: _isLoading
+            ? const LoadingWidget()
+            : TabBarView(children: [
+                ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount:
+                      noMoreQuizzesPublic ? 1 : quizItemsPublic.length + 1,
+                  itemBuilder: (context, index) {
+                    if (noMoreQuizzesPublic) {
+                      return Center(
+                        child: Column(
+                          children: [
+                            const Text('No more quizzes to load.'),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  noMoreQuizzesPublic = false;
+                                });
                               },
-                              quizData: quizItemsPublic[index],
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors
+                                    .primaryColor, // Change the button color
+                              ),
+                              child: const Text('Reload',
+                                  style: TextStyle(color: Colors.white)),
                             ),
-                          ),
-                        );
+                            const SizedBox(
+                              height: 25,
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                    if (index == quizItemsPublic.length) {
+                      return Center(
+                        child: _isButtonLoading
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      fetchQuizzesPublic(true);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors
+                                          .primaryColor, // Change the button color
+                                    ),
+                                    child: const Text('Load more...',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const SizedBox(
+                                    height: 25,
+                                  )
+                                ],
+                              ),
+                      );
+                    }
+                    return MyQuizCardItems(
+                      onDelete: () {
+                        deleteQuiz(quizItemsPublic[index].quizID!, 'Public');
                       },
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-          FutureBuilder(
-            future: fetchQuizzesPrivate(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: LoadingWidget());
-              } else {
-                if (quizItemsPrivate.isEmpty) {
-                  return const Center(
-                    child: Text('You have not created any quiz yet.'),
-                  );
-                } else {
-                  return SizedBox(
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: quizItemsPrivate.length,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                bottom: quizItemsPrivate.length - 1 == index
-                                    ? 30.0
-                                    : 0.0),
-                            child: MyQuizCardItems(
-                              onDelete: () {
-                                deleteQuiz(
-                                    quizItemsPrivate[index].quizID!, 'Private');
+                      quizData: quizItemsPublic[index],
+                    );
+                  },
+                ),
+                ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount:
+                      noMoreQuizzesPrivate ? 1 : quizItemsPrivate.length + 1,
+                  itemBuilder: (context, index) {
+                    if (noMoreQuizzesPrivate) {
+                      return Center(
+                        child: Column(
+                          children: [
+                            const Text('No more quizzes to load.'),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  noMoreQuizzesPrivate = false;
+                                });
                               },
-                              quizData: quizItemsPrivate[index],
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors
+                                    .primaryColor, // Change the button color
+                              ),
+                              child: const Text('Reload',
+                                  style: TextStyle(color: Colors.white)),
                             ),
-                          ),
-                        );
+                            const SizedBox(
+                              height: 25,
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                    if (index == quizItemsPrivate.length) {
+                      return Center(
+                        child: _isButtonLoading
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      fetchQuizzesPrivate(true);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors
+                                          .primaryColor, // Change the button color
+                                    ),
+                                    child: const Text('Load more...',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const SizedBox(
+                                    height: 25,
+                                  )
+                                ],
+                              ),
+                      );
+                    }
+                    return MyQuizCardItems(
+                      onDelete: () {
+                        deleteQuiz(quizItemsPrivate[index].quizID!, 'Private');
                       },
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-          FutureBuilder(
-            future: fetchQuizzesDraft(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: LoadingWidget());
-              } else {
-                if (quizItemsDrafts.isEmpty) {
-                  return const Center(
-                    child: Text('You have not created any quiz yet.'),
-                  );
-                } else {
-                  return SizedBox(
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: quizItemsDrafts.length,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                bottom: quizItemsDrafts.length - 1 == index
-                                    ? 30.0
-                                    : 0.0),
-                            child: MyQuizCardItems(
-                              onDelete: () {
-                                deleteQuiz(
-                                    quizItemsDrafts[index].quizID!, 'Draft');
+                      quizData: quizItemsPrivate[index],
+                    );
+                  },
+                ),
+                ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount:
+                      noMoreQuizzesDrafts ? 1 : quizItemsDrafts.length + 1,
+                  itemBuilder: (context, index) {
+                    if (noMoreQuizzesDrafts) {
+                      return Center(
+                        child: Column(
+                          children: [
+                            const Text('No more quizzes to load.'),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  noMoreQuizzesDrafts = false;
+                                });
                               },
-                              quizData: quizItemsDrafts[index],
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors
+                                    .primaryColor, // Change the button color
+                              ),
+                              child: const Text('Reload',
+                                  style: TextStyle(color: Colors.white)),
                             ),
-                          ),
-                        );
+                            const SizedBox(
+                              height: 25,
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                    if (index == quizItemsDrafts.length) {
+                      return Center(
+                        child: _isButtonLoading
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      fetchQuizzesDraft(true);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors
+                                          .primaryColor, // Change the button color
+                                    ),
+                                    child: const Text('Load more...',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const SizedBox(
+                                    height: 25,
+                                  )
+                                ],
+                              ),
+                      );
+                    }
+                    return MyQuizCardItems(
+                      onDelete: () {
+                        deleteQuiz(quizItemsDrafts[index].quizID!, 'Draft');
                       },
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        ]),
+                      quizData: quizItemsDrafts[index],
+                    );
+                  },
+                ),
+              ]),
       ),
     );
   }
