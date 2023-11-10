@@ -156,9 +156,8 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const CreateProfileScreen(
-                                    isEdit: true,
-                                  )),
+                              builder: (context) =>
+                                  const CreateProfileScreen()),
                         );
                       },
                     )

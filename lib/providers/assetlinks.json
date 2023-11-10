@@ -1,0 +1,10 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.raihansk.share_quiz",
+      "sha256_cert_fingerprints":
+      ["90:C6:77:65:22:FF:88:AA:32:40:1A:49:EF:44:94:DF:E5:BE:E4:A0:5E:32:C5:93:49:7E:42:21:FF:E9:93:75"]
+    }
+  }]
+  

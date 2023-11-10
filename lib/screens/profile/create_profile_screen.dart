@@ -13,6 +13,7 @@ import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/navigation.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/home/home_screen.dart';
 import 'package:share_quiz/screens/profile/profile_screen.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 
@@ -163,15 +164,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             ));
 
             // Navigate based on whether it's an edit or a new user.
-            if (widget.isEdit != null) {
-              Navigator.pushReplacement(
+            if (widget.isEdit == null) {
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             } else {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => NavigationScreen()),
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
             }
           }
@@ -202,15 +203,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ));
 
           // Navigate based on whether it's an edit or a new user.
-          if (widget.isEdit != null) {
-            Navigator.pushReplacement(
+          if (widget.isEdit == null) {
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           } else {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => NavigationScreen()),
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
             );
           }
         }
@@ -284,7 +285,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEdit != null ? 'Edit Profile' : 'Create Profile',
+          widget.isEdit == null ? 'Edit Profile' : 'Create Profile',
           style: const TextStyle(
             color: Colors.white, // Title text color
             fontSize: 24.0, // Title text size

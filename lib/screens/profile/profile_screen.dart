@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/home/settings_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_followers_screen.dart';
@@ -98,9 +99,7 @@ class _ProfileAvatar extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const CreateProfileScreen(
-                                isEdit: true,
-                              )),
+                          builder: (context) => const CreateProfileScreen()),
                     );
                   },
                 ),
@@ -279,9 +278,7 @@ class _QuickLinks extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateProfileScreen(
-                  isEdit: true,
-                ),
+                builder: (context) => const CreateProfileScreen(),
               ),
             );
           },
@@ -343,39 +340,29 @@ class _QuickLinks extends StatelessWidget {
             color: AppColors.primaryColor,
           ),
           onTap: () {
-            // Handle navigation to the settings screen.
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
           },
         ),
-        ListTile(
-          leading: const Icon(CupertinoIcons.exclamationmark,
-              color: AppColors.primaryColor),
-          title: const Text("Log Out"),
-          trailing: const Icon(
-            CupertinoIcons.forward,
-            color: AppColors.primaryColor,
-          ),
-          onTap: () async {
-            await GoogleSignIn().signOut();
-            FirebaseAuth.instance.signOut();
-            SharedPreferences preferences =
-                await SharedPreferences.getInstance();
-            await preferences.clear();
-          },
-        ),
-        ListTile(
-          leading: const Icon(CupertinoIcons.exclamationmark,
-              color: AppColors.primaryColor),
-          title: const Text("Clear Data"),
-          trailing: const Icon(
-            CupertinoIcons.forward,
-            color: AppColors.primaryColor,
-          ),
-          onTap: () async {
-            SharedPreferences preferences =
-                await SharedPreferences.getInstance();
-            await preferences.clear();
-          },
-        ),
+
+        // ListTile(
+        //   leading: const Icon(CupertinoIcons.exclamationmark,
+        //       color: AppColors.primaryColor),
+        //   title: const Text("Clear Data"),
+        //   trailing: const Icon(
+        //     CupertinoIcons.forward,
+        //     color: AppColors.primaryColor,
+        //   ),
+        //   onTap: () async {
+        //     SharedPreferences preferences =
+        //         await SharedPreferences.getInstance();
+        //     await preferences.clear();
+        //   },
+        // ),
         const SizedBox(
           height: 30,
         )

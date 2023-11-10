@@ -20,6 +20,7 @@ final List<Color> predefinedColors = [
   Colors.blue.shade800,
   Colors.orange,
   Colors.purple,
+  CupertinoColors.activeBlue,
   Colors.teal,
   Colors.pink,
   CupertinoColors.black,

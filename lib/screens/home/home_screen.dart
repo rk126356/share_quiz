@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/user_model.dart';
@@ -16,6 +18,7 @@ import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/home/widgets/left_panel.dart';
 import 'package:share_quiz/screens/home/widgets/quiz_desxription_gap.dart';
 import 'package:share_quiz/screens/home/widgets/right_panel.dart';
+import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:share_quiz/utils/search_popup.dart';
@@ -43,7 +46,100 @@ class _HomeScreenState extends State<HomeScreen>
   DocumentSnapshot? lastDocumentFollowings;
   DocumentSnapshot? lastFollowingQuiz;
 
-  Future<void> fetchQuizzes(bool dontClear) async {
+  final firestore = FirebaseFirestore.instance;
+
+  void fetchForYouQuizzes(bool next) async {
+    setState(() {
+      _isLoading = true;
+    });
+    final QuerySnapshot<Map<String, dynamic>> quizCollection;
+
+    if (next) {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .where('visibility', isEqualTo: 'Public')
+          .orderBy('createdAt', descending: true)
+          .startAfter([lastDocumentForYou?['createdAt']])
+          .limit(31)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('visibility', isEqualTo: 'Public')
+          .limit(31)
+          .get();
+    }
+
+    lastDocumentForYou =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+    bool limit = false;
+    bool limit2 = false;
+
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
+
+      final userCollection = await firestore
+          .collection('users')
+          .doc(quizData['creatorUserID'])
+          .get();
+
+      final userData = userCollection.data();
+
+      if (kDebugMode) {
+        print(quizData['quizID']);
+      }
+
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        creatorName: userData?['displayName'],
+        creatorUsername: userData?['username'],
+        creatorImage: userData?['avatarUrl'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        wins: quizData['wins'],
+        shares: quizData['shares'],
+        topScorerImage: quizData['topScorerImage'],
+        topScorerName: quizData['topScorerName'],
+        topScorerUid: quizData['topScorerUid'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorUserID: quizData['creatorUserID'],
+        createdAt: quizData['createdAt'],
+        timer: quizData['timer'],
+        difficulty: quizData['difficulty'],
+      );
+
+      forYouQuizzes.add(quizItem);
+
+      if (!limit) {
+        if (forYouQuizzes.length > 5) {
+          setState(() {
+            _isLoading = false;
+            limit = true;
+          });
+        }
+      }
+
+      if (!limit2) {
+        if (forYouQuizzes.length > 15) {
+          setState(() {
+            _isLoading = false;
+            limit2 = true;
+          });
+        }
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> fetchFollowingsQuizzes(bool dontClear) async {
     setState(() {
       _isLoading = true;
     });
@@ -51,140 +147,59 @@ class _HomeScreenState extends State<HomeScreen>
     final firestore = FirebaseFirestore.instance;
     var user = FirebaseAuth.instance.currentUser;
 
-    if (!_isForYouTab) {
-      QuerySnapshot<Map<String, dynamic>> followingRef;
+    QuerySnapshot<Map<String, dynamic>> followingRef;
 
-      if (dontClear) {
-        followingRef = await firestore
-            .collection('users/${user?.uid}/myFollowings')
-            .orderBy('createdAt')
-            .startAt([lastDocumentFollowings?['createdAt']])
-            .limit(5)
-            .get();
-      } else {
-        followingRef = await firestore
-            .collection('users/${user?.uid}/myFollowings')
-            .orderBy('createdAt')
-            .limit(5)
-            .get();
-      }
-
-      final List<CreateQuizDataModel> newQuizItems = [];
-
-      for (final docs in followingRef.docs) {
-        final userData = docs.data();
-        if (kDebugMode) {
-          print(userData['userID']);
-        }
-
-        lastDocumentFollowings =
-            followingRef.docs.isNotEmpty ? followingRef.docs.last : null;
-
-        if (kDebugMode) {
-          print(lastDocumentFollowings?['userID']);
-        }
-
-        try {
-          final QuerySnapshot<Map<String, dynamic>> quizCollection;
-
-          if (dontClear) {
-            quizCollection = await firestore
-                .collection('allQuizzes')
-                .where('creatorUserID', isEqualTo: userData['userID'])
-                .where('visibility', isEqualTo: 'Public')
-                .orderBy('createdAt', descending: true)
-                .startAfter([lastFollowingQuiz?['createdAt']])
-                .limit(5)
-                .get();
-          } else {
-            quizCollection = await firestore
-                .collection('allQuizzes')
-                .where('creatorUserID', isEqualTo: userData['userID'])
-                .where('visibility', isEqualTo: 'Public')
-                .orderBy('createdAt', descending: true)
-                .limit(5)
-                .get();
-          }
-
-          lastFollowingQuiz =
-              quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
-
-          for (final quizDoc in quizCollection.docs) {
-            final quizData = quizDoc.data();
-
-            final userCollection = await firestore
-                .collection('users')
-                .doc(quizData['creatorUserID'])
-                .get();
-
-            final userData = userCollection.data();
-
-            final quizItem = CreateQuizDataModel(
-              quizID: quizData['quizID'],
-              creatorName: userData?['displayName'],
-              creatorUsername: userData?['username'],
-              creatorImage: userData?['avatarUrl'],
-              quizDescription: quizData['quizDescription'],
-              quizTitle: quizData['quizTitle'],
-              likes: quizData['likes'],
-              views: quizData['views'],
-              taken: quizData['taken'],
-              wins: quizData['wins'],
-              shares: quizData['shares'],
-              topScorerImage: quizData['topScorerImage'],
-              topScorerName: quizData['topScorerName'],
-              topScorerUid: quizData['topScorerUid'],
-              categories: quizData['categories'],
-              noOfQuestions: quizData['noOfQuestions'],
-              creatorUserID: quizData['creatorUserID'],
-              createdAt: quizData['createdAt'],
-              timer: quizData['timer'],
-              difficulty: quizData['difficulty'],
-              visibility: quizData['visibility'],
-            );
-
-            newQuizItems.add(quizItem);
-          }
-
-          setState(() {
-            if (!dontClear) {
-              followingQuizzes.clear();
-            }
-            followingQuizzes.addAll(newQuizItems);
-            followingQuizzes
-                .sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
-          });
-        } catch (e) {
-          if (kDebugMode) {
-            print("Error fetching following quizzes: $e");
-          }
-        }
-      }
-      // for you page is starting from here...
+    if (dontClear) {
+      followingRef = await firestore
+          .collection('users/${user?.uid}/myFollowings')
+          .orderBy('createdAt')
+          .startAt([lastDocumentFollowings?['createdAt']])
+          .limit(5)
+          .get();
     } else {
-      try {
-        final List<CreateQuizDataModel> newQuizItems = [];
+      followingRef = await firestore
+          .collection('users/${user?.uid}/myFollowings')
+          .orderBy('createdAt')
+          .limit(5)
+          .get();
+    }
 
+    for (final docs in followingRef.docs) {
+      final userData = docs.data();
+      if (kDebugMode) {
+        print(userData['userID']);
+      }
+
+      lastDocumentFollowings =
+          followingRef.docs.isNotEmpty ? followingRef.docs.last : null;
+
+      if (kDebugMode) {
+        print(lastDocumentFollowings?['userID']);
+      }
+
+      try {
         final QuerySnapshot<Map<String, dynamic>> quizCollection;
 
         if (dontClear) {
           quizCollection = await firestore
               .collection('allQuizzes')
+              .where('creatorUserID', isEqualTo: userData['userID'])
               .where('visibility', isEqualTo: 'Public')
               .orderBy('createdAt', descending: true)
-              .startAfter([lastDocumentForYou?['createdAt']])
-              .limit(31)
+              .startAfter([lastFollowingQuiz?['createdAt']])
+              .limit(5)
               .get();
         } else {
           quizCollection = await firestore
               .collection('allQuizzes')
+              .where('creatorUserID', isEqualTo: userData['userID'])
               .where('visibility', isEqualTo: 'Public')
               .orderBy('createdAt', descending: true)
-              .limit(31)
+              .limit(5)
               .get();
         }
 
-        lastDocumentForYou =
+        lastFollowingQuiz =
             quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
         for (final quizDoc in quizCollection.docs) {
@@ -218,21 +233,18 @@ class _HomeScreenState extends State<HomeScreen>
             createdAt: quizData['createdAt'],
             timer: quizData['timer'],
             difficulty: quizData['difficulty'],
+            visibility: quizData['visibility'],
           );
 
-          newQuizItems.add(quizItem);
+          followingQuizzes.add(quizItem);
         }
 
         setState(() {
-          if (!dontClear) {
-            forYouQuizzes.clear();
-          }
-
-          forYouQuizzes.addAll(newQuizItems);
+          followingQuizzes.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
         });
       } catch (e) {
         if (kDebugMode) {
-          print("Error fetching for you quizzes: $e");
+          print("Error fetching following quizzes: $e");
         }
       }
     }
@@ -242,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  saveUserData() async {
+  saveUserData(context) async {
     var user = FirebaseAuth.instance.currentUser!;
     var data = Provider.of<UserProvider>(context, listen: false);
 
@@ -273,19 +285,42 @@ class _HomeScreenState extends State<HomeScreen>
         username: userData?['username'],
         email: userData?['email'],
       ));
+
+      if (userData!.containsKey('bio') &&
+          userData['bio'] != null &&
+          userData['bio'] == '') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CreateProfileScreen(
+                    isEdit: true,
+                  )),
+        );
+      }
     }
+  }
+
+  void initializeOneSignal() {
+    //Remove this method to stop OneSignal Debugging
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+
+    OneSignal.initialize("6b7604f1-6ca9-454d-add0-a850fce22ec8");
+
+// The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+    OneSignal.Notifications.requestPermission(true);
   }
 
   @override
   void initState() {
     super.initState();
-    saveUserData();
+    saveUserData(context);
+    initializeOneSignal();
     if (widget.isFollowingTab != null) {
       setState(() {
         _isForYouTab = widget.isFollowingTab!;
       });
     }
-    fetchQuizzes(false);
+    fetchForYouQuizzes(false);
     _tabController = TabController(length: 9999, vsync: this);
   }
 
@@ -346,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen>
                         _tabController.index = 0;
                       });
                       if (_isFirstTime) {
-                        fetchQuizzes(false);
+                        fetchFollowingsQuizzes(false);
                         _isFirstTime = false;
                       }
                     },
@@ -379,7 +414,7 @@ class _HomeScreenState extends State<HomeScreen>
                         _tabController.index = 0;
                       });
                       if (_isFirstTime) {
-                        fetchQuizzes(false);
+                        fetchForYouQuizzes(false);
                         _isFirstTime = false;
                       }
                     },
@@ -449,12 +484,15 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         child: TextButton(
           onPressed: () {
-            fetchQuizzes(true);
             setState(() {
               if (_isForYouTab) {
+                fetchForYouQuizzes(true);
                 forYouTabLength = forYouTabLength + 2;
                 _isReloadQuizForYou = false;
-              } else {
+              }
+
+              if (!_isForYouTab) {
+                fetchFollowingsQuizzes(true);
                 followingTabLemgth = followingTabLemgth + 2;
                 _isReloadQuizFollowings = false;
               }

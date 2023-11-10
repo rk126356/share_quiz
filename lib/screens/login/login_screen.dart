@@ -1,12 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/screens/profile/create_profile_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> signInWithGoogle(data) async {
+    Future<void> signInWithGoogle(data, BuildContext context) async {
       setState(() {
         isLoading = true;
       });
@@ -100,18 +100,27 @@ class _LoginScreenState extends State<LoginScreen> {
           });
         }
 
-        // Navigator.pushNamedAndRemoveUntil(context, '/app', (route) => false);
+        context.go('/app');
 
-        print('User data stored in Firestore');
+        if (kDebugMode) {
+          print('User data stored in Firestore');
+        }
 
         setState(() {
           isLoading = false;
         });
       } catch (error) {
-        print('Error signing in with Google: $error');
+        if (kDebugMode) {
+          print('Error signing in with Google: $error');
+        }
+        final user = FirebaseAuth.instance.currentUser;
+
         setState(() {
           isLoading = false;
         });
+        if (user != null) {
+          context.go('/app');
+        }
       }
     }
 
@@ -139,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: () {
-                        signInWithGoogle(data);
+                        signInWithGoogle(data, context);
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.white,

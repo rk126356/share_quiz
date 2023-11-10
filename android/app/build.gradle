@@ -30,10 +30,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 
+//    compileSdkVersion flutter.compileSdkVersion
 
 android {
     namespace "com.raihansk.share_quiz"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 33
     ndkVersion flutter.ndkVersion
 
     compileOptions {
