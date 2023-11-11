@@ -8,14 +8,9 @@ import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
-import 'package:share_quiz/screens/search/enter_quiz_code_screen.dart';
-import 'package:share_quiz/screens/search/search_quizzes_screen.dart';
-import 'package:share_quiz/screens/search/search_tags_screen.dart';
-import 'package:share_quiz/screens/search/search_user_screen.dart';
 import 'package:share_quiz/utils/search_popup.dart';
 import 'package:share_quiz/widgets/all_tags_box_widget.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
-import 'package:share_quiz/widgets/search_popup_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({Key? key}) : super(key: key);
@@ -57,20 +52,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
       topPlayers.add(newUser);
     }
 
-    final quizCollection = await firestore.collection('allQuizzes').get();
+    final tagsCollection =
+        await firestore.collection('popularTags').limit(9).get();
 
-    for (final tagDoc in quizCollection.docs) {
+    for (final tagDoc in tagsCollection.docs) {
       final tagData = tagDoc.data();
-      final tagItem = tagData['categories'];
+      final tagItem = tagData['category'];
 
-      for (final tag in tagItem) {
-        if (tagItems.length < 9) {
-          if (!tagItems.contains(tag)) {
-            tagItems.add(tag);
-          } else {}
-        } else {
-          break;
+      if (tagItems.length < 9) {
+        if (!tagItems.contains(tagItem)) {
+          tagItems.add(tagItem);
         }
+      } else {
+        break;
       }
     }
 
@@ -157,7 +151,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       height: 22,
                     ),
                     const Text(
-                      "Recent Tags",
+                      "Popular Tags",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
@@ -201,8 +195,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        ),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12.0),
+                            backgroundColor: AppColors.primaryColor),
                         child: const Text("See All Tags"),
                       ),
                     ),

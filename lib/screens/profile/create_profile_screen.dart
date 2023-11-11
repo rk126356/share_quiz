@@ -286,12 +286,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       appBar: AppBar(
         title: Text(
           widget.isEdit == null ? 'Edit Profile' : 'Create Profile',
-          style: const TextStyle(
-            color: Colors.white, // Title text color
-            fontSize: 24.0, // Title text size
-          ),
         ),
-        backgroundColor: AppColors.primaryColor, // App bar background color
+        backgroundColor: AppColors.primaryColor,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -299,8 +295,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ignore: prefer_const_constructors
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Stack(
@@ -371,12 +366,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(
                             r'[a-zA-Z0-9_]+')), // Only allow letters, numbers, and underscores
-                        LengthLimitingTextInputFormatter(
-                            16), // Limit the length to 16 characters
+                        LengthLimitingTextInputFormatter(16),
                       ],
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Username is required';
+                        }
+                        if (value.length < 5) {
+                          return 'Username is too short (min 5 characters)';
                         }
                         return null; // No error
                       },
@@ -391,12 +388,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         ),
                       ),
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(
-                            r'[a-zA-Z0-9_]+')), // Only allow letters, numbers, and underscores
-                        LengthLimitingTextInputFormatter(
-                            20), // Limit the length to 16 characters
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9_]+')),
+                        LengthLimitingTextInputFormatter(20),
                       ],
                       validator: (value) {
+                        if (value!.length < 5) {
+                          return 'Full Name is too short (min 5 characters)';
+                        }
                         if (value!.length > 20) {
                           return 'Full Name is too long (max 20 characters)';
                         }
@@ -412,11 +411,17 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           color: AppColors.primaryColor,
                         ),
                       ),
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(80),
+                      ],
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Bio is required';
                         }
-                        if (value!.length > 80) {
+                        if (value.length < 10) {
+                          return 'Bio is too short (min 10 characters)';
+                        }
+                        if (value.length > 80) {
                           return 'Bio is too long (max 80 characters)';
                         }
                         return null; // No error

@@ -3,24 +3,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
 import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 
 class RightPanel extends StatefulWidget {
-  const RightPanel(
-      {Key? key,
-      required this.size,
-      required this.creatorUserID,
-      required this.profileImg,
-      required this.likes,
-      required this.noOfQuestions,
-      required this.shares,
-      required this.views,
-      required this.taken,
-      required this.quizID,
-      required this.categories})
-      : super(key: key);
+  const RightPanel({
+    Key? key,
+    required this.size,
+    required this.creatorUserID,
+    required this.profileImg,
+    required this.likes,
+    required this.noOfQuestions,
+    required this.shares,
+    required this.views,
+    required this.taken,
+    required this.quizID,
+    required this.categories,
+    required this.quizTitle,
+    required this.quizDescription,
+    required this.difficulty,
+  }) : super(key: key);
 
   final Size size;
   final String creatorUserID;
@@ -32,6 +36,9 @@ class RightPanel extends StatefulWidget {
   final String taken;
   final String quizID;
   final String categories;
+  final String quizTitle;
+  final String quizDescription;
+  final String difficulty;
 
   @override
   State<RightPanel> createState() => _RightPanelState();
@@ -245,12 +252,20 @@ class _RightPanelState extends State<RightPanel> {
                         ),
                   InkWell(
                     onTap: () {
+                      Share.share(
+                          'Quiz Title: ${widget.quizTitle}\n\n'
+                          'Description: ${widget.quizDescription}\n\n'
+                          'Questions: ${widget.noOfQuestions}\n\n'
+                          'Difficulty: ${widget.difficulty}\n\n'
+                          'Quiz Code: ${widget.quizID}\n\n'
+                          'Play Now: https://raihansk.com/play/${widget.quizID}',
+                          subject: 'Check out this awesome Quiz');
                       updateShare(widget.quizID, widget.creatorUserID);
                     },
                     child: Column(
                       children: [
                         const Icon(
-                          CupertinoIcons.reply,
+                          CupertinoIcons.arrowshape_turn_up_right,
                           color: white,
                           size: 25,
                         ),

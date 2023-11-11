@@ -7,7 +7,7 @@ class SearchUsersScreen extends StatefulWidget {
   const SearchUsersScreen({Key? key}) : super(key: key);
 
   @override
-  _SearchUsersScreenState createState() => _SearchUsersScreenState();
+  State<SearchUsersScreen> createState() => _SearchUsersScreenState();
 }
 
 class _SearchUsersScreenState extends State<SearchUsersScreen> {
@@ -76,7 +76,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
                           backgroundImage: NetworkImage(user['avatarUrl']),
                         ),
                         title: Text(user['displayName']),
-                        subtitle: Text(user['username']),
+                        subtitle: Text('@${user['username']}'),
                         trailing: Text('Quizzes: ${user['noOfQuizzes']}'),
                         onTap: () {
                           Navigator.push(

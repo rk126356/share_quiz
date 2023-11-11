@@ -28,11 +28,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
   bool _isLoading = false;
   bool _isButtonLoading = false;
-  bool noMoreQuizzesPublic = false;
-  bool noMoreQuizzesPrivate = false;
-  bool noMoreQuizzesDrafts = false;
 
-  Future<void> fetchQuizzesPublic(bool next) async {
+  Future<void> fetchQuizzesPublic(bool next, context) async {
     if (quizItemsPublic.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -66,8 +63,24 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     }
 
     if (quizCollection.docs.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No more quizzes available.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
       setState(() {
-        noMoreQuizzesPublic = true;
         _isButtonLoading = false;
         _isLoading = false;
       });
@@ -102,7 +115,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     });
   }
 
-  Future<void> fetchQuizzesPrivate(bool next) async {
+  Future<void> fetchQuizzesPrivate(bool next, context) async {
     if (quizItemsPrivate.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -137,10 +150,29 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
     if (quizCollection.docs.isEmpty) {
       setState(() {
-        noMoreQuizzesPrivate = true;
         _isButtonLoading = false;
         _isLoading = false;
       });
+      if (next) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('No more quizzes available.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
       return;
     }
 
@@ -172,7 +204,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     });
   }
 
-  Future<void> fetchQuizzesDraft(bool next) async {
+  Future<void> fetchQuizzesDraft(bool next, context) async {
     if (quizItemsDrafts.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -207,10 +239,29 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
 
     if (quizCollection.docs.isEmpty) {
       setState(() {
-        noMoreQuizzesDrafts = true;
         _isButtonLoading = false;
         _isLoading = false;
       });
+      if (next) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('No more quizzes available.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
       return;
     }
 
@@ -250,22 +301,26 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
     final firestore = FirebaseFirestore.instance;
 
     await firestore.collection('allQuizzes').doc(quizID).delete();
-    await firestore
-        .collection('users')
-        .doc(data.userData.uid)
-        .update({'noOfQuizzes': FieldValue.increment(-1)});
+
+    if (what == 'Public') {
+      quizItemsPublic.removeWhere((quiz) => quiz.quizID == quizID);
+      await firestore
+          .collection('users')
+          .doc(data.userData.uid)
+          .update({'noOfQuizzes': FieldValue.increment(-1)});
+    }
+    if (what == 'Private') {
+      quizItemsPrivate.removeWhere((quiz) => quiz.quizID == quizID);
+      await firestore
+          .collection('users')
+          .doc(data.userData.uid)
+          .update({'noOfQuizzesPrivate': FieldValue.increment(-1)});
+    }
+    if (what == 'Draft') {
+      quizItemsDrafts.removeWhere((quiz) => quiz.quizID == quizID);
+    }
 
     setState(() {
-      if (what == 'Public') {
-        quizItemsPublic.removeWhere((quiz) => quiz.quizID == quizID);
-      }
-      if (what == 'Private') {
-        quizItemsPrivate.removeWhere((quiz) => quiz.quizID == quizID);
-      }
-      if (what == 'Draft') {
-        quizItemsDrafts.removeWhere((quiz) => quiz.quizID == quizID);
-      }
-
       _isLoading = false;
     });
   }
@@ -274,20 +329,17 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (widget.initialIndex == 0) {
-      if (quizItemsPublic.isEmpty) {
-        fetchQuizzesPublic(false);
-      }
+
+    if (quizItemsPublic.isEmpty) {
+      fetchQuizzesPublic(false, context);
     }
-    if (widget.initialIndex == 1) {
-      if (quizItemsPrivate.isEmpty) {
-        fetchQuizzesPrivate(false);
-      }
+
+    if (quizItemsPrivate.isEmpty) {
+      fetchQuizzesPrivate(false, context);
     }
-    if (widget.initialIndex == 2) {
-      if (quizItemsDrafts.isEmpty) {
-        fetchQuizzesDraft(false);
-      }
+
+    if (quizItemsDrafts.isEmpty) {
+      fetchQuizzesDraft(false, context);
     }
   }
 
@@ -300,25 +352,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primaryColor,
           title: const Text('My Quizzes'),
-          bottom: TabBar(
-            onTap: (tab) {
-              if (tab == 0) {
-                if (quizItemsPublic.isEmpty) {
-                  fetchQuizzesPublic(false);
-                }
-              }
-              if (tab == 1) {
-                if (quizItemsPrivate.isEmpty) {
-                  fetchQuizzesPrivate(false);
-                }
-              }
-              if (tab == 2) {
-                if (quizItemsDrafts.isEmpty) {
-                  fetchQuizzesDraft(false);
-                }
-              }
-            },
-            tabs: const [
+          bottom: const TabBar(
+            tabs: [
               Tab(text: 'Public'),
               Tab(text: 'Private'),
               Tab(text: 'Drafts')
@@ -330,34 +365,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
             : TabBarView(children: [
                 ListView.builder(
                   scrollDirection: Axis.vertical,
-                  itemCount:
-                      noMoreQuizzesPublic ? 1 : quizItemsPublic.length + 1,
+                  itemCount: quizItemsPublic.length + 1,
                   itemBuilder: (context, index) {
-                    if (noMoreQuizzesPublic) {
-                      return Center(
-                        child: Column(
-                          children: [
-                            const Text('No more quizzes to load.'),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  noMoreQuizzesPublic = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors
-                                    .primaryColor, // Change the button color
-                              ),
-                              child: const Text('Reload',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(
-                              height: 25,
-                            )
-                          ],
-                        ),
-                      );
-                    }
                     if (index == quizItemsPublic.length) {
                       return Center(
                         child: _isButtonLoading
@@ -366,7 +375,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      fetchQuizzesPublic(true);
+                                      fetchQuizzesPublic(true, context);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors
@@ -392,34 +401,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                 ),
                 ListView.builder(
                   scrollDirection: Axis.vertical,
-                  itemCount:
-                      noMoreQuizzesPrivate ? 1 : quizItemsPrivate.length + 1,
+                  itemCount: quizItemsPrivate.length + 1,
                   itemBuilder: (context, index) {
-                    if (noMoreQuizzesPrivate) {
-                      return Center(
-                        child: Column(
-                          children: [
-                            const Text('No more quizzes to load.'),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  noMoreQuizzesPrivate = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors
-                                    .primaryColor, // Change the button color
-                              ),
-                              child: const Text('Reload',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(
-                              height: 25,
-                            )
-                          ],
-                        ),
-                      );
-                    }
                     if (index == quizItemsPrivate.length) {
                       return Center(
                         child: _isButtonLoading
@@ -428,7 +411,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      fetchQuizzesPrivate(true);
+                                      fetchQuizzesPrivate(true, context);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors
@@ -454,34 +437,8 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                 ),
                 ListView.builder(
                   scrollDirection: Axis.vertical,
-                  itemCount:
-                      noMoreQuizzesDrafts ? 1 : quizItemsDrafts.length + 1,
+                  itemCount: quizItemsDrafts.length + 1,
                   itemBuilder: (context, index) {
-                    if (noMoreQuizzesDrafts) {
-                      return Center(
-                        child: Column(
-                          children: [
-                            const Text('No more quizzes to load.'),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  noMoreQuizzesDrafts = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors
-                                    .primaryColor, // Change the button color
-                              ),
-                              child: const Text('Reload',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(
-                              height: 25,
-                            )
-                          ],
-                        ),
-                      );
-                    }
                     if (index == quizItemsDrafts.length) {
                       return Center(
                         child: _isButtonLoading
@@ -490,7 +447,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      fetchQuizzesDraft(true);
+                                      fetchQuizzesDraft(true, context);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors

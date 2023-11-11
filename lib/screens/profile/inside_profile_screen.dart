@@ -30,39 +30,7 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
   late UserModel user;
   final List<CreateQuizDataModel> quizItems = [];
 
-  Future<void> fetchQuizzes(String userId) async {
-    final firestore = FirebaseFirestore.instance;
-
-    quizItems.clear();
-
-    final quizCollection = await firestore
-        .collection('allQuizzes')
-        .where('creatorUserID', isEqualTo: userId)
-        .where('visibility', isEqualTo: 'Public')
-        .get();
-
-    for (final quizDoc in quizCollection.docs) {
-      final quizData = quizDoc.data();
-      final quizItem = CreateQuizDataModel(
-        quizID: quizData['quizID'],
-        quizDescription: quizData['quizDescription'],
-        quizTitle: quizData['quizTitle'],
-        likes: quizData['likes'],
-        views: quizData['views'],
-        taken: quizData['taken'],
-        categories: quizData['categories'],
-        noOfQuestions: quizData['noOfQuestions'],
-        creatorImage: quizData['creatorImage'],
-        creatorName: quizData['creatorName'],
-        creatorUserID: quizData['creatorUserID'],
-      );
-
-      quizItems.add(quizItem);
-    }
-    setState(() {});
-  }
-
-  Future<void> fetchUser(String userId) async {
+  void fetchUser(String userId) async {
     _isLoading = true;
     final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
     final userDocSnapshot = await userDoc.get();
@@ -100,6 +68,39 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> fetchQuizzes(String userId) async {
+    final firestore = FirebaseFirestore.instance;
+
+    quizItems.clear();
+
+    final quizCollection = await firestore
+        .collection('allQuizzes')
+        .where('creatorUserID', isEqualTo: userId)
+        .where('visibility', isEqualTo: 'Public')
+        .limit(10)
+        .get();
+
+    for (final quizDoc in quizCollection.docs) {
+      final quizData = quizDoc.data();
+      final quizItem = CreateQuizDataModel(
+        quizID: quizData['quizID'],
+        quizDescription: quizData['quizDescription'],
+        quizTitle: quizData['quizTitle'],
+        likes: quizData['likes'],
+        views: quizData['views'],
+        taken: quizData['taken'],
+        categories: quizData['categories'],
+        noOfQuestions: quizData['noOfQuestions'],
+        creatorImage: quizData['creatorImage'],
+        creatorName: quizData['creatorName'],
+        creatorUserID: quizData['creatorUserID'],
+      );
+
+      quizItems.add(quizItem);
+    }
+    setState(() {});
   }
 
   bool isAppBarExpanded = false;
@@ -176,16 +177,39 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
                   return const Center(
                     child: Text("No quizzes found"),
                   );
-                } else {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: quizItems.length - 1 == index ? 30.0 : 0.0,
-                    ),
-                    child: QuizCardItems(
+                }
+
+                return Column(
+                  children: [
+                    QuizCardItems(
                       quizData: quizItems[index],
                     ),
-                  );
-                }
+                    if (index + 1 == quizItems.length)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 30.0),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => UserQuizzesScreen(
+                                          uid: user.uid!,
+                                          username: user.username!,
+                                        )),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors
+                                  .primaryColor, // Change the button color
+                            ),
+                            child: const Text('See All Quizzes',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      )
+                  ],
+                );
               },
               childCount: quizItems.isEmpty ? 1 : quizItems.length,
             ),
@@ -209,7 +233,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
   bool _isLoadingFollow = false;
   bool _isChecking = true;
 
-  checkIfFollowing() async {
+  void checkIfFollowing() async {
     _isChecking = true;
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -229,7 +253,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
     }
   }
 
-  addFollowing() async {
+  void addFollowing() async {
     checkIfFollowing();
     setState(() {
       _isLoadingFollow = true;

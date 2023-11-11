@@ -2,19 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/settings_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
-import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_followers_screen.dart';
 import 'package:share_quiz/screens/profile/my_followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_history_screen.dart';
-import 'package:share_quiz/screens/profile/my_private_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -88,12 +84,11 @@ class _ProfileAvatar extends StatelessWidget {
               ),
               CircleAvatar(
                 radius: 20,
-                backgroundColor:
-                    Colors.blue, // Background color of the edit icon
+                backgroundColor: Colors.blue,
                 child: IconButton(
                   icon: const Icon(
                     Icons.edit,
-                    color: Colors.white, // Color of the edit icon
+                    color: Colors.white,
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -188,6 +183,7 @@ class _ProfileStats extends StatelessWidget {
         var userData = snapshot.data?.data() as Map<String, dynamic>;
         var followers = userData['noOfFollowers'] ?? 0;
         var quizzes = userData['noOfQuizzes'] ?? 0;
+        var privateQuizzes = userData['noOfQuizzesPrivate'] ?? 0;
         var followings = userData['noOfFollowings'] ?? 0;
 
         return Row(
@@ -204,7 +200,7 @@ class _ProfileStats extends StatelessWidget {
                   ),
                 );
               },
-              child: _StatItem("Quizzes", quizzes.toString()),
+              child: _StatItem("Quizzes", '${quizzes + privateQuizzes}'),
             ),
             InkWell(
               onTap: () {

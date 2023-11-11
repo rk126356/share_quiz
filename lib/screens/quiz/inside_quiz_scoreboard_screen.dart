@@ -15,9 +15,14 @@ class InsideQuizScoreBoardScreen extends StatefulWidget {
   final CreateQuizDataModel quizData;
   final int? score;
   final int? noOfAttempts;
+  final int initialIndex;
 
   const InsideQuizScoreBoardScreen(
-      {Key? key, required this.quizData, this.score, this.noOfAttempts})
+      {Key? key,
+      required this.quizData,
+      this.score,
+      this.noOfAttempts,
+      required this.initialIndex})
       : super(key: key);
 
   @override
@@ -132,7 +137,8 @@ class _InsideQuizScoreBoardScreenState
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Number of tabs
+      initialIndex: widget.initialIndex,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.primaryColor,

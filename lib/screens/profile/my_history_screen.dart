@@ -26,23 +26,6 @@ class _MyHistoryScreenState extends State<MyHistoryScreen> {
         children: [
           ListTile(
             leading:
-                const Icon(CupertinoIcons.eye, color: AppColors.primaryColor),
-            title: const Text("Recently Viewed"),
-            trailing: const Icon(
-              CupertinoIcons.forward,
-              color: AppColors.primaryColor,
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyViewedQuizzesScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading:
                 const Icon(CupertinoIcons.play, color: AppColors.primaryColor),
             title: const Text("Played Quizzes"),
             trailing: const Icon(
@@ -105,6 +88,23 @@ class _MyHistoryScreenState extends State<MyHistoryScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const MyDislikedQuizzesScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading:
+                const Icon(CupertinoIcons.eye, color: AppColors.primaryColor),
+            title: const Text("Recently Viewed"),
+            trailing: const Icon(
+              CupertinoIcons.forward,
+              color: AppColors.primaryColor,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyViewedQuizzesScreen(),
                 ),
               );
             },

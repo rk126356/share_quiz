@@ -3,10 +3,8 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/common/colors.dart';
-import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/widgets/category_home_widget.dart';
-import 'package:share_quiz/widgets/small_category_box_widget.dart';
 
 class SearchTagsScreem extends StatefulWidget {
   const SearchTagsScreem({Key? key}) : super(key: key);

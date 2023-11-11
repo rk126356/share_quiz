@@ -23,15 +23,13 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
   bool _isLoading = false;
   bool _isButtonLoading = false;
 
-  bool noMoreQuizzes = false;
-
   @override
   void initState() {
     super.initState();
-    fetchQuizzes(false);
+    fetchQuizzes(false, context);
   }
 
-  Future<void> fetchQuizzes(bool next) async {
+  Future<void> fetchQuizzes(bool next, context) async {
     if (quizItems.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -62,8 +60,25 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
     }
 
     if (quizCollection.docs.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No more quizzes available.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
       setState(() {
-        noMoreQuizzes = true;
+        _isLoading = false;
         _isButtonLoading = false;
       });
       return;
@@ -106,33 +121,8 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
                 Expanded(
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
-                    itemCount: noMoreQuizzes ? 1 : quizItems.length + 1,
+                    itemCount: quizItems.length + 1,
                     itemBuilder: (context, index) {
-                      if (noMoreQuizzes) {
-                        return Center(
-                          child: Column(
-                            children: [
-                              const Text('No more quizzes to load.'),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    noMoreQuizzes = false;
-                                  });
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors
-                                      .primaryColor, // Change the button color
-                                ),
-                                child: const Text('Reload',
-                                    style: TextStyle(color: Colors.white)),
-                              ),
-                              const SizedBox(
-                                height: 25,
-                              )
-                            ],
-                          ),
-                        );
-                      }
                       if (index == quizItems.length) {
                         return Center(
                           child: _isButtonLoading
@@ -141,7 +131,7 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
                                   children: [
                                     ElevatedButton(
                                       onPressed: () {
-                                        fetchQuizzes(true);
+                                        fetchQuizzes(true, context);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors

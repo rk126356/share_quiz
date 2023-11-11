@@ -18,19 +18,80 @@ class UserQuizzesScreen extends StatefulWidget {
 class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
   final List<CreateQuizDataModel> quizItems = [];
 
-  Future<void> fetchQuizzes() async {
+  int listLength = 10;
+
+  DocumentSnapshot? lastDocument;
+  bool _isLoading = false;
+  bool _isButtonLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchQuizzes(false, context);
+  }
+
+  Future<void> fetchQuizzes(bool next, context) async {
+    if (quizItems.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     final firestore = FirebaseFirestore.instance;
 
-    quizItems.clear();
+    QuerySnapshot<Map<String, dynamic>> quizCollection;
 
-    final quizCollection = await firestore
-        .collection('allQuizzes')
-        .where('creatorUserID', isEqualTo: widget.uid)
-        .get();
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('creatorUserID', isEqualTo: widget.uid)
+          .where('visibility', isEqualTo: 'Public')
+          .startAfter([lastDocument?['createdAt']])
+          .limit(listLength)
+          .get();
+    } else {
+      quizCollection = await firestore
+          .collection('allQuizzes')
+          .orderBy('createdAt', descending: true)
+          .where('creatorUserID', isEqualTo: widget.uid)
+          .where('visibility', isEqualTo: 'Public')
+          .limit(listLength)
+          .get();
+    }
+
+    if (quizCollection.docs.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No more quizzes available.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      setState(() {
+        _isButtonLoading = false;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    lastDocument =
+        quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
-
       final quizItem = CreateQuizDataModel(
         quizID: quizData['quizID'],
         quizDescription: quizData['quizDescription'],
@@ -47,6 +108,10 @@ class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
 
       quizItems.add(quizItem);
     }
+    setState(() {
+      _isLoading = false;
+      _isButtonLoading = false;
+    });
   }
 
   @override
@@ -56,38 +121,51 @@ class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
         backgroundColor: AppColors.primaryColor,
         title: Text('${widget.username}: Quizzes'),
       ),
-      body: FutureBuilder(
-        future: fetchQuizzes(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: LoadingWidget());
-          } else {
-            if (quizItems.isEmpty) {
-              return const Center(
-                child: Text('This user have not created any quiz yet.'),
-              );
-            } else {
-              return SizedBox(
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: quizItems.length,
-                  itemBuilder: (context, index) {
-                    return SizedBox(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            bottom: quizItems.length - 1 == index ? 30.0 : 0.0),
+      body: _isLoading
+          ? const LoadingWidget()
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    itemCount: quizItems.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == quizItems.length) {
+                        return Center(
+                          child: _isButtonLoading
+                              ? const CircularProgressIndicator()
+                              : Column(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        fetchQuizzes(true, context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors
+                                            .primaryColor, // Change the button color
+                                      ),
+                                      child: const Text('Load more...',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                    ),
+                                    const SizedBox(
+                                      height: 25,
+                                    )
+                                  ],
+                                ),
+                        );
+                      }
+                      return SizedBox(
+                        width: 250,
                         child: QuizCardItems(
                           quizData: quizItems[index],
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              );
-            }
-          }
-        },
-      ),
+              ],
+            ),
     );
   }
 }

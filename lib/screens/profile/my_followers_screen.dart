@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
@@ -16,17 +17,67 @@ class MyFollowersScreen extends StatefulWidget {
 
 class _MyFollowersScreenState extends State<MyFollowersScreen> {
   List<UserModel> users = [];
-  bool _loading = false;
+  bool _isLoading = false;
+  bool _isButtonLoading = false;
+  DocumentSnapshot? lastDocument;
+  int listLength = 1;
 
-  fetchFollowers() async {
-    setState(() {
-      _loading = true;
-    });
+  void fetchFollowers(bool next, context) async {
     var data = Provider.of<UserProvider>(context, listen: false);
+    if (users.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
     final firestore = FirebaseFirestore.instance;
-    final followingRef = await firestore
-        .collection('users/${data.userData.uid}/myFollowers')
-        .get();
+
+    QuerySnapshot<Map<String, dynamic>> followingRef;
+
+    if (next) {
+      setState(() {
+        _isButtonLoading = true;
+      });
+      followingRef = await firestore
+          .collection('users/${data.userData.uid}/myFollowers')
+          .orderBy('createdAt', descending: true)
+          .startAfter([lastDocument?['createdAt']])
+          .limit(listLength)
+          .get();
+    } else {
+      followingRef = await firestore
+          .collection('users/${data.userData.uid}/myFollowers')
+          .orderBy('createdAt', descending: true)
+          .limit(listLength)
+          .get();
+    }
+
+    lastDocument = followingRef.docs.isNotEmpty ? followingRef.docs.last : null;
+
+    if (followingRef.docs.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No more followers available.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      setState(() {
+        _isButtonLoading = false;
+        _isLoading = false;
+      });
+      return;
+    }
 
     for (final docs in followingRef.docs) {
       final userData = docs.data();
@@ -41,6 +92,7 @@ class _MyFollowersScreenState extends State<MyFollowersScreen> {
           uid: user['uid'],
           avatarUrl: user['avatarUrl'],
           noOfQuizzes: user['noOfQuizzes'],
+          username: user['username'],
         );
 
         users.add(newUser);
@@ -51,7 +103,8 @@ class _MyFollowersScreenState extends State<MyFollowersScreen> {
       }
     }
     setState(() {
-      _loading = false;
+      _isLoading = false;
+      _isButtonLoading = false;
     });
   }
 
@@ -98,31 +151,54 @@ class _MyFollowersScreenState extends State<MyFollowersScreen> {
   @override
   void initState() {
     super.initState();
-    fetchFollowers();
+    fetchFollowers(false, context);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: LoadingWidget(),
-      );
-    }
     return Scaffold(
-      appBar: AppBar(title: const Text('My Followers')),
-      body: users.isEmpty
-          ? const Center(
-              child: Text('You have no followers'),
-            )
-          : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                return UserCard(
-                  user: users[index],
-                  onRemove: () => removeFollower(users[index].uid!),
-                );
-              },
-            ),
+      appBar: AppBar(
+          backgroundColor: AppColors.primaryColor,
+          title: const Text('My Followers')),
+      body: _isLoading
+          ? const LoadingWidget()
+          : users.isEmpty
+              ? const Center(
+                  child: Text('You have no followers'),
+                )
+              : ListView.builder(
+                  itemCount: users.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == users.length) {
+                      return Center(
+                        child: _isButtonLoading
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      fetchFollowers(true, context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors
+                                          .primaryColor, // Change the button color
+                                    ),
+                                    child: const Text('Load more...',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const SizedBox(
+                                    height: 25,
+                                  )
+                                ],
+                              ),
+                      );
+                    }
+                    return UserCard(
+                      user: users[index],
+                      onRemove: () => removeFollower(users[index].uid!),
+                    );
+                  },
+                ),
     );
   }
 }
@@ -154,10 +230,13 @@ class UserCard extends StatelessWidget {
             backgroundImage: NetworkImage(user.avatarUrl!),
           ),
           title: Text(user.name!),
-          subtitle: Text('Quizzes: ${user.noOfQuizzes.toString()}'),
+          subtitle: Text('@${user.username}'),
           trailing: ElevatedButton(
             onPressed: onRemove,
-            child: Text('Remove'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red, // Change the button color
+            ),
+            child: const Text('Remove'),
           ),
         ),
       ),

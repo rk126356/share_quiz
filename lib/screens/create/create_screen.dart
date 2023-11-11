@@ -3,13 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
 import 'package:share_quiz/screens/create/templates/templates_screen.dart';
-import 'package:share_quiz/screens/profile/my_draft_quizzes_screen.dart';
-import 'package:share_quiz/screens/profile/my_private_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
 import 'package:share_quiz/utils/remove_line_breakes.dart';
@@ -366,7 +362,7 @@ class _CreateScreenState extends State<CreateScreen> {
     );
   }
 
-  saveQuiz(data, context) async {
+  void saveQuiz(data, context) async {
     if (quizData.quizTitle != null &&
         quizData.quizDescription != null &&
         previewQuestions.length > 1 &&
@@ -619,7 +615,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 maxLength: 30,
                 decoration: const InputDecoration(
                   icon: Icon(
-                    CupertinoIcons.tag_fill,
+                    CupertinoIcons.number,
                     color: AppColors.primaryColor,
                   ),
                   labelText: 'Quiz Tags',

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
@@ -211,17 +212,25 @@ class _QuizCardItemsState extends State<QuizCardItems> {
             ),
             trailing: IconButton(
                 onPressed: () {
+                  Share.share(
+                      'Quiz Title: ${widget.quizData.quizTitle}\n\n'
+                      'Description: ${widget.quizData.quizDescription}\n\n'
+                      'Questions: ${widget.quizData.noOfQuestions}\n\n'
+                      'Difficulty: ${widget.quizData.difficulty}\n\n'
+                      'Quiz Code: ${widget.quizData.quizID}\n\n'
+                      'Play Now: https://raihansk.com/play/${widget.quizData.quizID}',
+                      subject: 'Check out this awesome Quiz');
                   updateShare(
                       widget.quizData.quizID, widget.quizData.creatorUserID);
                 },
-                icon: const Icon(Icons.share)),
+                icon: const Icon(CupertinoIcons.arrowshape_turn_up_right)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 const Icon(
-                  CupertinoIcons.tag,
+                  CupertinoIcons.number,
                   color: CupertinoColors.activeBlue,
                   size: 20,
                 ),

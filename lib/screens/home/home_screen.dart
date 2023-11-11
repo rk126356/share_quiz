@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
@@ -126,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen>
       }
 
       if (!limit2) {
-        if (forYouQuizzes.length > 15) {
+        if (forYouQuizzes.length > 10) {
           setState(() {
             _isLoading = false;
             limit2 = true;
@@ -487,13 +486,13 @@ class _HomeScreenState extends State<HomeScreen>
             setState(() {
               if (_isForYouTab) {
                 fetchForYouQuizzes(true);
-                forYouTabLength = forYouTabLength + 2;
+                forYouTabLength = forYouTabLength + 29;
                 _isReloadQuizForYou = false;
               }
 
               if (!_isForYouTab) {
                 fetchFollowingsQuizzes(true);
-                followingTabLemgth = followingTabLemgth + 2;
+                followingTabLemgth = followingTabLemgth + 19;
                 _isReloadQuizFollowings = false;
               }
             });
@@ -823,6 +822,9 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                             ),
                             RightPanel(
                               quizID: widget.quizID!,
+                              quizTitle: widget.quizTitle!,
+                              quizDescription: widget.quizDescription!,
+                              difficulty: widget.difficulty!,
                               creatorUserID: widget.creatorUserID,
                               size: widget.size,
                               views: widget.views.toString(),

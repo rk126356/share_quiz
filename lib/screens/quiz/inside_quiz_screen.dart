@@ -5,14 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
-import 'package:share_quiz/controllers/update_plays_firebase.dart';
 import 'package:share_quiz/controllers/update_views_firebase.dart';
-import 'package:share_quiz/data/quiz_item_data.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/create/templates/inside_template_screen.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
@@ -41,7 +40,6 @@ class InsideQuizScreen extends StatefulWidget {
 }
 
 class _InsideQuizScreenState extends State<InsideQuizScreen> {
-  late Future<CreateQuizDataModel> quizData;
   bool _isLiked = false;
   bool _isDisliked = false;
   bool _isLoading = false;
@@ -50,7 +48,12 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
 
   late DocumentSnapshot<Map<String, dynamic>> _quizCollection;
 
-  Future<CreateQuizDataModel> fetchQuizDetails() async {
+  CreateQuizDataModel quizData = CreateQuizDataModel();
+
+  void fetchQuizDetails() async {
+    if (kDebugMode) {
+      print("Fetching Quiz Details");
+    }
     setState(() {
       _isLoading = true;
     });
@@ -64,11 +67,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     final quizDataMap = _quizCollection.data();
 
     if (quizDataMap?['quizzes'] != null) {
-      setState(() {
-        _isQuizDataFound = true;
-        _isLoading = false;
-      });
-
       try {
         final quizzesList = quizDataMap?['quizzes'] as List<dynamic>;
 
@@ -84,6 +82,13 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           updatedViews - 1;
         }
 
+        final userDoc = FirebaseFirestore.instance
+            .collection('users')
+            .doc(quizDataMap?['creatorUserID']);
+        final userDocSnapshot = await userDoc.get();
+
+        final userData = userDocSnapshot.data();
+
         CreateQuizDataModel data = CreateQuizDataModel(
           quizID: widget.quizID,
           quizDescription: quizDataMap?['quizDescription'],
@@ -97,8 +102,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           topScorerName: quizDataMap?['topScorerName'],
           categories: quizDataMap?['categories'],
           noOfQuestions: quizDataMap?['noOfQuestions'],
-          creatorName: quizDataMap?['creatorName'],
-          creatorImage: quizDataMap?['creatorImage'],
+          creatorName: userData?['displayName'],
+          creatorImage: userData?['avatarUrl'],
           shares: quizDataMap?['shares'],
           timer: quizDataMap?['timer'],
           visibility: quizDataMap?['visibility'],
@@ -128,12 +133,16 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           _shouldPlay = false;
         }
 
-        return data;
+        quizData = data;
       } catch (e) {
         if (kDebugMode) {
           print(e);
         }
       }
+      setState(() {
+        _isQuizDataFound = true;
+        _isLoading = false;
+      });
     } else {
       setState(() {
         _isQuizDataFound = false;
@@ -144,7 +153,6 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         print('Quiz data is not available');
       }
     }
-    return CreateQuizDataModel();
   }
 
   Future<void> checkIfQuizIsLiked() async {
@@ -244,7 +252,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         });
       }
     }
-    quizData = fetchQuizDetails();
+    fetchQuizDetails();
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
     _isLoading = false;
@@ -310,7 +318,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         });
       }
     }
-    quizData = fetchQuizDetails();
+    fetchQuizDetails();
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
     _isLoading = false;
@@ -320,7 +328,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   void initState() {
     super.initState();
     _shouldPlay = widget.isQuickPlay != null;
-    quizData = fetchQuizDetails();
+    fetchQuizDetails();
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
   }
@@ -328,6 +336,17 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (_isLoading && _isQuizDataFound) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Loading...'),
+          backgroundColor: AppColors.primaryColor,
+        ),
+        body: const LoadingWidget(),
+      );
+    }
+
     if (!_isQuizDataFound && !_isLoading) {
       return Scaffold(
           appBar: AppBar(
@@ -350,453 +369,446 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-              onPressed: () {}, icon: const Icon(CupertinoIcons.bookmark)),
-          IconButton(
-              onPressed: () {
-                quizData = fetchQuizDetails();
-                checkIfQuizIsLiked();
-                checkIfQuizIsDisliked();
-              },
-              icon: const Icon(CupertinoIcons.refresh))
-        ],
-        title: const Text('Quiz Details'),
-        backgroundColor:
-            CupertinoColors.activeBlue, // Customize the app bar color
-      ),
-      body: FutureBuilder<CreateQuizDataModel>(
-        future: quizData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: LoadingWidget());
-          } else if (snapshot.hasError) {
-            return const Center(
-              child: Text("Quiz is deleted or wrong Quiz ID"),
-            );
-          } else {
-            final quizData = snapshot.data;
-
-            if (_isLoading) {
-              return const LoadingWidget();
-            }
-
-            return ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                // Quiz Card
-                Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5.0),
-                        child: ListTile(
+        appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Share.share(
+                      'Quiz Title: ${quizData.quizTitle}\n\n'
+                      'Description: ${quizData.quizDescription}\n\n'
+                      'Questions: ${quizData.noOfQuestions}\n\n'
+                      'Difficulty: ${quizData.difficulty}\n\n'
+                      'Quiz Code: ${quizData.quizID}\n\n'
+                      'Play Now: https://raihansk.com/play/${quizData.quizID}',
+                      subject: 'Check out this awesome Quiz');
+                  updateShare(quizData.quizID, quizData.creatorUserID);
+                },
+                icon: const Icon(CupertinoIcons.arrowshape_turn_up_right)),
+            IconButton(
+                onPressed: () {
+                  fetchQuizDetails();
+                  checkIfQuizIsLiked();
+                  checkIfQuizIsDisliked();
+                },
+                icon: const Icon(CupertinoIcons.refresh)),
+          ],
+          title: const Text('Quiz Details'),
+          backgroundColor: CupertinoColors.activeBlue,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            // Quiz Card
+            Card(
+              elevation: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    child: ListTile(
+                        title: Text(
+                          quizData.quizTitle ?? 'No Title',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
                             title: Text(
-                              quizData?.quizTitle ?? 'No Title',
+                              quizData.quizDescription!,
+                              textAlign: TextAlign.left,
                               style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.grey,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            subtitle: ExpansionTile(
-                                tilePadding: EdgeInsets.zero,
-                                title: Text(
-                                  quizData!.quizDescription!,
-                                  textAlign: TextAlign.left,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                  maxLines:
-                                      1, // You can adjust the number of visible lines as needed
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        top: 4.0, bottom: 8.0),
-                                    child: Align(
-                                      alignment: Alignment.bottomLeft,
-                                      child: Text(
-                                        quizData!.quizDescription!,
-                                        textAlign: TextAlign.left,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 4.0, bottom: 8.0),
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: Text(
+                                    quizData.quizDescription!,
+                                    textAlign: TextAlign.left,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
                                     ),
                                   ),
-                                ])),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: CupertinoColors.activeBlue,
-                                borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(4)),
-                              ),
-                              child: TextButton(
-                                onPressed: data.userData.uid! ==
-                                            quizData.creatorUserID &&
-                                        quizData.visibility == 'Draft'
-                                    ? () {
-                                        final template = QuizTemplate(
-                                            templateQuizzes: quizData.quizzes!,
-                                            templateQuizTitle:
-                                                quizData.quizTitle!,
-                                            templateQuizDescription:
-                                                quizData.quizDescription!,
-                                            templateQuizTags: quizData
-                                                .categories!
-                                                .join(", ")
-                                                .toString());
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  InsideTemplateScreen(
-                                                    template: template,
-                                                    quizID: quizData.quizID,
-                                                  )),
-                                        );
-                                      }
-                                    : data.userData.uid! !=
-                                                quizData.creatorUserID &&
-                                            quizData.visibility == 'Draft'
-                                        ? () {
-                                            print('My Quiz');
-                                          }
-                                        : () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PlayQuizScreen(
-                                                  quizData: quizData!,
-                                                  quizID: widget.quizID,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.all(15),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      CupertinoIcons.play_arrow,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(
-                                      width: 8,
-                                    ),
-                                    Text(
-                                      data.userData.uid! !=
-                                                  quizData.creatorUserID &&
-                                              quizData.visibility == 'Draft'
-                                          ? 'Coming Soon...'
-                                          : data.userData.uid! ==
-                                                      quizData.creatorUserID &&
-                                                  quizData.visibility == 'Draft'
-                                              ? 'Edit Quiz'
-                                              : 'PLAY QUIZ',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ],
                                 ),
                               ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: CupertinoColors.activeGreen,
-                                borderRadius: BorderRadius.only(
-                                    bottomRight: Radius.circular(4)),
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          InsideQuizScoreBoardScreen(
-                                        quizData: quizData!,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.all(15),
-                                ),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.chart_bar_square,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(
-                                      width: 8,
-                                    ),
-                                    Text(
-                                      'SCOREBOARD',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
+                            ])),
                   ),
-                ),
-
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Row(
                     children: [
-                      SmallRowButton(
-                        onTap: () {
-                          FlutterClipboard.copy(widget.quizID).then((value) {
-                            const snackBar = SnackBar(
-                              behavior: SnackBarBehavior.floating,
-                              content: Text("Copied to Clipboard"),
-                            );
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(snackBar);
-                          });
-                        },
-                        title: 'Code: ${widget.quizID}',
-                        icon: const Icon(
-                          Icons.content_copy,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      SmallRowButton(
-                        onTap: () {
-                          addLikedQuizToFirebase(
-                              widget.quizID, quizData!.categories!);
-                        },
-                        title: 'Like',
-                        icon: Icon(
-                          _isLiked
-                              ? CupertinoIcons.hand_thumbsup_fill
-                              : CupertinoIcons.hand_thumbsup,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {
-                          addDislikedQuizToFirebase(
-                              widget.quizID, quizData!.categories!);
-                        },
-                        title: 'Dislike',
-                        icon: Icon(
-                          _isDisliked
-                              ? CupertinoIcons.hand_thumbsdown_fill
-                              : CupertinoIcons.hand_thumbsdown,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {
-                          updateShare(quizData!.quizID, quizData.creatorUserID);
-                        },
-                        title: 'Share',
-                        icon: const Icon(
-                          CupertinoIcons.share,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {},
-                        title: 'Releated',
-                        icon: const Icon(
-                          CupertinoIcons.list_dash,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      SmallRowButton(
-                        onTap: () {},
-                        title: 'Report',
-                        icon: const Icon(
-                          CupertinoIcons.info,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                // Wins and Top Scorer Card
-                Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    children: [
-                      avatarTile('Creator', quizData!.creatorImage!,
-                          quizData.creatorName.toString(), () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => InsideProfileScreen(
-                                    userId: quizData.creatorUserID!,
-                                  )),
-                        );
-                      }),
-                      avatarTile('Top Scorer', quizData.topScorerImage!,
-                          quizData.topScorerName.toString(), () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => InsideQuizScoreBoardScreen(
-                              quizData: quizData,
-                            ),
+                      Expanded(
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.activeBlue,
+                            borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(4)),
                           ),
-                        );
-                      })
-                    ],
-                  ),
-                ),
-
-                // Statistics Card
-                Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(CupertinoIcons.tag,
-                            color: CupertinoColors.activeBlue),
-                        title: const Text(
-                          'Tags',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        subtitle: Row(
-                          children:
-                              quizData.categories!.asMap().entries.map((entry) {
-                            final tagName = entry.value;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: InkWell(
-                                  onTap: () {
+                          child: TextButton(
+                            onPressed: data.userData.uid! ==
+                                        quizData.creatorUserID &&
+                                    quizData.visibility == 'Draft'
+                                ? () {
+                                    final template = QuizTemplate(
+                                        templateQuizzes: quizData.quizzes!,
+                                        templateQuizTitle: quizData.quizTitle!,
+                                        templateQuizDescription:
+                                            quizData.quizDescription!,
+                                        templateQuizTags: quizData.categories!
+                                            .join(", ")
+                                            .toString());
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              InsideQuizTagScreen(
-                                                tag: tagName,
+                                              InsideTemplateScreen(
+                                                template: template,
+                                                quizID: quizData.quizID,
                                               )),
                                     );
-                                  },
-                                  child: Text(
-                                    tagName,
-                                    style: AppFonts.link,
-                                  )),
-                            );
-                          }).toList(),
+                                  }
+                                : data.userData.uid! !=
+                                            quizData.creatorUserID &&
+                                        quizData.visibility == 'Draft'
+                                    ? () {}
+                                    : () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PlayQuizScreen(
+                                              quizData: quizData,
+                                              quizID: widget.quizID,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.all(15),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.play_arrow,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  data.userData.uid! !=
+                                              quizData.creatorUserID &&
+                                          quizData.visibility == 'Draft'
+                                      ? 'Coming Soon...'
+                                      : data.userData.uid! ==
+                                                  quizData.creatorUserID &&
+                                              quizData.visibility == 'Draft'
+                                          ? 'Edit Quiz'
+                                          : 'PLAY QUIZ',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                      statTile('Difficulty', CupertinoIcons.lightbulb,
-                          quizData.difficulty!, () {}),
-                      if (quizData.visibility != 'Public')
-                        statTile('Visibility', CupertinoIcons.globe,
-                            quizData.visibility!, () {}),
-                      statTile('Questions', CupertinoIcons.question_circle,
-                          quizData.noOfQuestions.toString(), () {}),
-                      statTile('Views', CupertinoIcons.eye,
-                          quizData.views.toString(), () {}),
-                      statTile('Plays', CupertinoIcons.play_arrow,
-                          quizData.taken.toString(), () {}),
-                      statTile('Wins', CupertinoIcons.check_mark_circled,
-                          quizData.wins.toString(), () {}),
-                      statTile(
-                          'Likes',
-                          _isLiked
-                              ? CupertinoIcons.heart_fill
-                              : CupertinoIcons.heart,
-                          quizData.likes.toString(),
-                          () {}),
-                      statTile('Shares', CupertinoIcons.share,
-                          quizData.shares.toString(), () {}),
+                      Expanded(
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: CupertinoColors.activeGreen,
+                            borderRadius: BorderRadius.only(
+                                bottomRight: Radius.circular(4)),
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      InsideQuizScoreBoardScreen(
+                                    initialIndex: 1,
+                                    quizData: quizData,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.all(15),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.chart_bar_square,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  'SCOREBOARD',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
-                  ),
-                ),
+                  )
+                ],
+              ),
+            ),
 
-                // Play Button
-                ElevatedButton(
-                  onPressed: () {
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SmallRowButton(
+                    onTap: () {
+                      FlutterClipboard.copy(widget.quizID).then((value) {
+                        const snackBar = SnackBar(
+                          behavior: SnackBarBehavior.floating,
+                          content: Text("Copied to Clipboard"),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                      });
+                    },
+                    title: 'Code: ${widget.quizID}',
+                    icon: const Icon(
+                      Icons.content_copy,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SmallRowButton(
+                    onTap: () {
+                      addLikedQuizToFirebase(
+                          widget.quizID, quizData.categories!);
+                    },
+                    title: 'Like',
+                    icon: Icon(
+                      _isLiked
+                          ? CupertinoIcons.hand_thumbsup_fill
+                          : CupertinoIcons.hand_thumbsup,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  SmallRowButton(
+                    onTap: () {
+                      addDislikedQuizToFirebase(
+                          widget.quizID, quizData.categories!);
+                    },
+                    title: 'Dislike',
+                    icon: Icon(
+                      _isDisliked
+                          ? CupertinoIcons.hand_thumbsdown_fill
+                          : CupertinoIcons.hand_thumbsdown,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  SmallRowButton(
+                    onTap: () {
+                      Share.share(
+                          'Quiz Title: ${quizData.quizTitle}\n\n'
+                          'Description: ${quizData.quizDescription}\n\n'
+                          'Questions: ${quizData.noOfQuestions}\n\n'
+                          'Difficulty: ${quizData.difficulty}\n\n'
+                          'Quiz Code: ${quizData.quizID}\n\n'
+                          'Play Now: https://raihansk.com/play/${quizData.quizID}',
+                          subject: 'Check out this awesome Quiz');
+
+                      updateShare(quizData.quizID, quizData.creatorUserID);
+                    },
+                    title: 'Share',
+                    icon: const Icon(
+                      CupertinoIcons.share,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  SmallRowButton(
+                    onTap: () {},
+                    title: 'Releated',
+                    icon: const Icon(
+                      CupertinoIcons.list_dash,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  SmallRowButton(
+                    onTap: () {},
+                    title: 'Report',
+                    icon: const Icon(
+                      CupertinoIcons.info,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            // Wins and Top Scorer Card
+            Card(
+              elevation: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                children: [
+                  avatarTile('Creator', quizData.creatorImage!,
+                      quizData.creatorName.toString(), () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PlayQuizScreen(
+                          builder: (context) => InsideProfileScreen(
+                                userId: quizData.creatorUserID!,
+                              )),
+                    );
+                  }),
+                  avatarTile('Top Scorer', quizData.topScorerImage!,
+                      quizData.topScorerName.toString(), () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InsideQuizScoreBoardScreen(
+                          initialIndex: 1,
                           quizData: quizData,
-                          quizID: widget.quizID,
                         ),
                       ),
                     );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: CupertinoColors.activeBlue,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(CupertinoIcons.play_arrow_solid, size: 24),
-                      SizedBox(
-                        width: 5,
+                  })
+                ],
+              ),
+            ),
+
+            // Statistics Card
+            Card(
+              elevation: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(CupertinoIcons.tag,
+                        color: CupertinoColors.activeBlue),
+                    title: const Text(
+                      'Tags',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey,
                       ),
-                      Text(
-                        "Play",
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
-                    ],
+                    ),
+                    subtitle: Row(
+                      children:
+                          quizData.categories!.asMap().entries.map((entry) {
+                        final tagName = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => InsideQuizTagScreen(
+                                            tag: tagName,
+                                          )),
+                                );
+                              },
+                              child: Text(
+                                tagName,
+                                style: AppFonts.link,
+                              )),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 30,
-                )
-              ],
-            );
-          }
-        },
-      ),
-    );
+                  statTile('Difficulty', CupertinoIcons.lightbulb,
+                      quizData.difficulty!, () {}),
+                  if (quizData.visibility != 'Public')
+                    statTile('Visibility', CupertinoIcons.globe,
+                        quizData.visibility!, () {}),
+                  statTile('Questions', CupertinoIcons.question_circle,
+                      quizData.noOfQuestions.toString(), () {}),
+                  statTile('Views', CupertinoIcons.eye,
+                      quizData.views.toString(), () {}),
+                  statTile('Plays', CupertinoIcons.play_arrow,
+                      quizData.taken.toString(), () {}),
+                  statTile('Wins', CupertinoIcons.check_mark_circled,
+                      quizData.wins.toString(), () {}),
+                  statTile(
+                      'Likes',
+                      _isLiked
+                          ? CupertinoIcons.heart_fill
+                          : CupertinoIcons.heart,
+                      quizData.likes.toString(),
+                      () {}),
+                  statTile('Shares', CupertinoIcons.share,
+                      quizData.shares.toString(), () {}),
+                ],
+              ),
+            ),
+
+            // Play Button
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PlayQuizScreen(
+                      quizData: quizData,
+                      quizID: widget.quizID,
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: CupertinoColors.activeBlue,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.play_arrow_solid, size: 24),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    "Play",
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 30,
+            )
+          ],
+        ));
   }
 }
