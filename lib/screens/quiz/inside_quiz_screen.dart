@@ -82,12 +82,50 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           updatedViews - 1;
         }
 
-        final userDoc = FirebaseFirestore.instance
-            .collection('users')
-            .doc(quizDataMap?['creatorUserID']);
-        final userDocSnapshot = await userDoc.get();
+        String userName = 'Not found';
+        String userImage = '';
+        String topScorerName = 'No One Yet!';
+        String topScorerImage = '';
 
-        final userData = userDocSnapshot.data();
+        try {
+          final userDoc = FirebaseFirestore.instance
+              .collection('users')
+              .doc(quizDataMap?['creatorUserID']);
+          final userDocSnapshot = await userDoc.get();
+
+          final userData = userDocSnapshot.data();
+
+          setState(() {
+            userName = userData?['displayName'];
+            userImage = userData?['avatarUrl'];
+          });
+
+          final scoreCollection = await firestore
+              .collection('allQuizzes/${widget.quizID}/scoreBoard')
+              .orderBy('playerScore', descending: true)
+              .orderBy('timeTaken')
+              .orderBy('attemptNo')
+              .limit(1)
+              .get();
+
+          final documents = scoreCollection.docs;
+          final topScorer = documents.first.data();
+
+          final topScorerUserDoc = FirebaseFirestore.instance
+              .collection('users')
+              .doc(topScorer['playerUid']);
+          final topScorerUserDocSnapshot = await topScorerUserDoc.get();
+
+          final topScorerData = topScorerUserDocSnapshot.data();
+          setState(() {
+            topScorerName = topScorerData?['displayName'];
+            topScorerImage = topScorerData?['avatarUrl'];
+          });
+        } catch (e) {
+          if (kDebugMode) {
+            print(e);
+          }
+        }
 
         CreateQuizDataModel data = CreateQuizDataModel(
           quizID: widget.quizID,
@@ -98,12 +136,12 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           views: updatedViews,
           taken: quizDataMap?['taken'],
           wins: quizDataMap?['wins'],
-          topScorerImage: quizDataMap?['topScorerImage'],
-          topScorerName: quizDataMap?['topScorerName'],
+          topScorerImage: topScorerImage,
+          topScorerName: topScorerName,
           categories: quizDataMap?['categories'],
           noOfQuestions: quizDataMap?['noOfQuestions'],
-          creatorName: userData?['displayName'],
-          creatorImage: userData?['avatarUrl'],
+          creatorName: userName,
+          creatorImage: userImage,
           shares: quizDataMap?['shares'],
           timer: quizDataMap?['timer'],
           visibility: quizDataMap?['visibility'],
@@ -538,7 +576,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                                   builder: (context) =>
                                       InsideQuizScoreBoardScreen(
                                     initialIndex: 1,
-                                    quizData: quizData,
+                                    quizID: quizData.quizID!,
                                   ),
                                 ),
                               );
@@ -695,7 +733,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                       MaterialPageRoute(
                         builder: (context) => InsideQuizScoreBoardScreen(
                           initialIndex: 1,
-                          quizData: quizData,
+                          quizID: quizData.quizID!,
                         ),
                       ),
                     );

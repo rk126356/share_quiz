@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/Models/scores_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/controllers/update_plays_firebase.dart';
 import 'package:share_quiz/providers/user_provider.dart';
@@ -32,53 +31,46 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   int secondsTotal = 0;
   int? noOfAttempts = 0;
   bool _isLoading = false;
+  bool _isCorrect = false;
+  bool _isWrong = false;
 
-  fetchScores() async {
+  void fetchScores() async {
     setState(() {
       _isLoading = true;
     });
     var userDataProvider =
         Provider.of<UserProvider>(context, listen: false).userData;
     final firestore = FirebaseFirestore.instance;
-    final document = await firestore
-        .collection('allQuizzes')
-        .doc(widget.quizData.quizID)
+    final scoreCollection = await firestore
+        .collection('allQuizzes/${widget.quizID}/scoreBoard')
+        .where('playerUid', isEqualTo: userDataProvider.uid)
         .get();
 
-    if (document.exists) {
-      final data = document.data();
-      if (data != null && data.containsKey('scores')) {
-        try {
-          final scoresData = data['scores'] as List<dynamic>;
+    final documents = scoreCollection.docs;
 
-          final loadedScores = await Future.wait(scoresData.map((score) async {
-            if (userDataProvider.uid == score['playerUid']) {
-              noOfAttempts = noOfAttempts! + 1;
-            }
-          }).toList());
+    if (documents.isEmpty) {
+      noOfAttempts = 0;
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
 
-          if (kDebugMode) {
-            print(noOfAttempts);
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print(e);
-          }
-        }
-      } else {
-        noOfAttempts = 0;
+    for (final doc in documents) {
+      final data = doc.data();
+
+      if (kDebugMode) {
+        print(data['playerUid']);
       }
+
+      noOfAttempts = noOfAttempts! + 1;
     }
     setState(() {
       _isLoading = false;
     });
   }
 
-  void updatePlaysAndScore() async {
-    setState(() {
-      _isLoading = true;
-    });
-    var data = Provider.of<UserProvider>(context, listen: false);
+  void updatePlaysNow() async {
     final firestore = FirebaseFirestore.instance;
 
     final quizCollection =
@@ -86,19 +78,23 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
 
     await quizCollection.update({
       'taken': FieldValue.increment(1),
-      'scores': FieldValue.arrayUnion([
-        {
-          'playerUid': data.userData.uid,
-          'playerScore': score,
-          'timestamp': DateTime.now(),
-          'timeTaken': secondsTotal,
-          'noOfQuestions': widget.quizData.noOfQuestions,
-          'attemptNo': noOfAttempts ?? 0,
-        },
-      ]),
     });
-    setState(() {
-      _isLoading = false;
+  }
+
+  void updateScore() async {
+    var data = Provider.of<UserProvider>(context, listen: false);
+    final firestore = FirebaseFirestore.instance;
+
+    final quizCollection =
+        firestore.collection('allQuizzes/${widget.quizID}/scoreBoard').doc();
+
+    await quizCollection.set({
+      'playerUid': data.userData.uid,
+      'playerScore': score,
+      'timeTaken': secondsTotal,
+      'noOfQuestions': widget.quizData.noOfQuestions,
+      'attemptNo': noOfAttempts ?? 0,
+      'createdAt': Timestamp.now(),
     });
   }
 
@@ -108,7 +104,12 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
 
     if (selectedChoice.toString() == correctIndex) {
       setState(() {
+        _isCorrect = true;
         score++;
+      });
+    } else {
+      setState(() {
+        _isWrong = true;
       });
     }
     // Move to the next question
@@ -125,17 +126,21 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       if (quizTimer != null && quizTimer!.isActive) {
         quizTimer!.cancel();
       }
-      updatePlaysAndScore();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => InsideQuizScoreBoardScreen(
-            initialIndex: 0,
-            score: score,
-            quizData: widget.quizData,
-            noOfAttempts: noOfAttempts! + 1,
-          ), // Pass the score
-        ),
-      );
+      updateScore();
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => InsideQuizScoreBoardScreen(
+              initialIndex: 0,
+              score: score,
+              quizID: widget.quizData.quizID!,
+              noOfQuestions: widget.quizData.noOfQuestions,
+              noOfAttempts: noOfAttempts! + 1,
+            ), // Pass the score
+          ),
+        );
+      });
     }
   }
 
@@ -150,26 +155,61 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       });
       if (secondsRemaining == 0) {
         timer.cancel();
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text("Time's up!"),
-              content: const Text("Your quiz time has expired."),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    checkAnswer(99999);
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
-        );
+        _showTimeUp();
       }
     });
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _isWrong = false;
+        _isCorrect = false;
+      });
+    });
+  }
+
+  void _showAnswerPopup(bool isCorrect) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(isCorrect ? "Correct!" : "Wrong!"),
+          content: Text(
+            isCorrect
+                ? "Well done! You got it right."
+                : "Oops! That's the wrong answer.",
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeUp() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Time's up!"),
+          content: const Text("Your quiz time has expired."),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                checkAnswer(99999);
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   startTimeTaken() {
@@ -192,6 +232,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   @override
   void initState() {
     super.initState();
+    updatePlaysNow();
     updatePlays(widget.quizData!.quizID, widget.quizData.creatorUserID);
     startTimeTaken();
     fetchScores();
@@ -259,7 +300,11 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        color: Colors.white,
+                        color: _isCorrect
+                            ? const Color.fromARGB(255, 133, 227, 157)
+                            : _isWrong
+                                ? const Color.fromARGB(255, 227, 122, 116)
+                                : CupertinoColors.white,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
@@ -292,7 +337,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
                                       color: Colors.transparent,
                                       child: Ink(
                                         decoration: BoxDecoration(
-                                          color: Colors.blue,
+                                          color: AppColors.primaryColor,
                                           borderRadius:
                                               BorderRadius.circular(10),
                                         ),
