@@ -92,14 +92,67 @@ List<Quizzes> westBengalQuestions = [
   ),
 ];
 
+List<Quizzes> myQuestions = [
+  Quizzes(
+    questionTitle: "What is my favorite color?",
+    choices: ["Blue", "Red", "Green", "Purple"],
+    correctAns: '0', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "Which is my preferred season?",
+    choices: ["Spring", "Summer", "Fall", "Winter"],
+    correctAns: '2', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "What is my favorite genre of books?",
+    choices: ["Mystery", "Fantasy", "Romance", "Science Fiction"],
+    correctAns: '1', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "What is my favorite type of pet?",
+    choices: ["Dog", "Cat", "Fish", "Bird"],
+    correctAns: '0', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "Which is my preferred mode of transportation?",
+    choices: ["Car", "Bicycle", "Public Transport", "Walking"],
+    correctAns: '3', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "What is my favorite dessert?",
+    choices: ["Chocolate Cake", "Ice Cream", "Cheesecake", "Fruit Salad"],
+    correctAns: '1', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "What is my favorite movie genre?",
+    choices: ["Action", "Comedy", "Drama", "Thriller"],
+    correctAns: '2', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "Which is my favorite holiday destination?",
+    choices: ["Beach Resort", "Mountain Retreat", "City Tour", "Countryside"],
+    correctAns: '0', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "What is my preferred type of exercise?",
+    choices: ["Running", "Yoga", "Weightlifting", "Swimming"],
+    correctAns: '1', // Replace with the correct index
+  ),
+  Quizzes(
+    questionTitle: "Which is my favorite board game?",
+    choices: ["Monopoly", "Chess", "Scrabble", "Risk"],
+    correctAns: '3', // Replace with the correct index
+  ),
+];
+
 class _TemplatesScreenState extends State<TemplatesScreen> {
   List<QuizTemplate> templateQuizItems = [
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: myQuestions,
+      templateQuizTitle: "Discovering [Your Name]: A Quiz About Me!",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Welcome to the ultimate quiz about [Your Name]! Test your knowledge and see how well you know [Your Name]'s preferences, favorites, and lifestyle. From colors to travel destinations, dive into the details that make [Your Name] unique.",
+      templateQuizTags: 'personal, friends',
     ),
     QuizTemplate(
       templateQuizzes: westBengalQuestions,

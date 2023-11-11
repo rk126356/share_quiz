@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/controllers/update_app_launch.dart';
 import 'package:share_quiz/controllers/update_views_firebase.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/colors.dart';
@@ -253,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  saveUserData(context) async {
+  void saveUserData(context) async {
     var user = FirebaseAuth.instance.currentUser!;
     var data = Provider.of<UserProvider>(context, listen: false);
 
@@ -305,15 +306,14 @@ class _HomeScreenState extends State<HomeScreen>
 
     OneSignal.initialize("6b7604f1-6ca9-454d-add0-a850fce22ec8");
 
-// The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
-    OneSignal.Notifications.requestPermission(true);
+// // The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+//     OneSignal.Notifications.requestPermission(true);
   }
 
   @override
   void initState() {
     super.initState();
-    saveUserData(context);
-    initializeOneSignal();
+
     if (widget.isFollowingTab != null) {
       setState(() {
         _isForYouTab = widget.isFollowingTab!;
@@ -321,6 +321,10 @@ class _HomeScreenState extends State<HomeScreen>
     }
     fetchForYouQuizzes(false);
     _tabController = TabController(length: 9999, vsync: this);
+
+    updateAppLaunched(context);
+    saveUserData(context);
+    initializeOneSignal();
   }
 
   @override
@@ -364,11 +368,9 @@ class _HomeScreenState extends State<HomeScreen>
                 imageUrl:
                     'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2Fezgif-4-e8a7f6764c.gif?alt=media&token=1e048c6a-74cd-4d44-bb79-90671ecc20f9',
                 placeholder: (context, url) =>
-                    const CircularProgressIndicator(), // Placeholder widget while loading
-                errorWidget: (context, url, error) =>
-                    const Icon(Icons.error), // Widget to display on error
-                fadeInDuration: const Duration(
-                    milliseconds: 200), // Duration for the image to fade in
+                    const CircularProgressIndicator(),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+                fadeInDuration: const Duration(milliseconds: 200),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -208,7 +208,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
         title: const Text('Play Quiz'),
       ),
       body: _isLoading
-          ? LoadingWidget()
+          ? const LoadingWidget()
           : Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
