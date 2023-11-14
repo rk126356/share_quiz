@@ -477,11 +477,11 @@ class _HomeScreenState extends State<HomeScreen>
   Widget reload() {
     return Center(
       child: Container(
-        width: 200, // Adjust the width as needed
-        margin: const EdgeInsets.all(10.0), // Add margin around the button
+        width: 200,
+        margin: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
-          color: AppColors.primaryColor, // Background color
-          borderRadius: BorderRadius.circular(10.0), // Rounded corners
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10.0),
         ),
         child: TextButton(
           onPressed: () {
@@ -640,8 +640,16 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
     String quizDescription = widget.quizDescription!;
     List<String> lines = quizDescription.split('\n');
 
-    if (lines.length > 6) {
-      quizDescription = '${lines.take(6).join('\n')}...';
+    if (lines.length > 1) {
+      if (lines[0].length > 200) {
+        quizDescription = lines[0];
+      } else if (lines[0].length > 100 ||
+          lines[1].length > 100 ||
+          (lines.length > 1 && lines[1].length > 100)) {
+        quizDescription = '${lines.take(2).join('\n')}...';
+      } else if (lines.length > 6) {
+        quizDescription = '${lines.take(5).join('\n')}...';
+      }
     }
 
     return SizedBox(

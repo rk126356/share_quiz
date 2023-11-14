@@ -172,8 +172,16 @@ class _QuizCardItemsState extends State<QuizCardItems> {
     String quizDescription = widget.quizData.quizDescription!;
     List<String> lines = quizDescription.split('\n');
 
-    if (lines.length > 6) {
-      quizDescription = lines.take(6).join('\n') + '...';
+    if (lines.length > 1) {
+      if (lines[0].length > 200) {
+        quizDescription = lines[0];
+      } else if (lines[0].length > 100 ||
+          lines[1].length > 100 ||
+          (lines.length > 1 && lines[1].length > 100)) {
+        quizDescription = '${lines.take(2).join('\n')}...';
+      } else if (lines.length > 6) {
+        quizDescription = '${lines.take(5).join('\n')}...';
+      }
     }
 
     return Card(

@@ -22,7 +22,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
   bool _isButtonLoading = false;
 
   DocumentSnapshot? lastDocument;
-  int listLength = 1;
+  int listLength = 10;
 
   void fetchFollowers(bool next, context) async {
     if (users.isEmpty) {

@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/data/quiz-templates/adventureTimeQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/literaryExplorerQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/movieBuffQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/myQuestions1.dart';
+import 'package:share_quiz/data/quiz-templates/myTravelPreferencesQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/personalQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/sportsFanaticQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/techGeekTrivia.dart';
 import 'package:share_quiz/screens/create/templates/inside_template_screen.dart';
 
 class TemplatesScreen extends StatefulWidget {
@@ -13,196 +21,64 @@ class TemplatesScreen extends StatefulWidget {
   State<TemplatesScreen> createState() => _TemplatesScreenState();
 }
 
-List<Quizzes> westBengalQuestions = [
-  Quizzes(
-    questionTitle: "What is the capital of West Bengal?",
-    choices: ["Kolkata", "Howrah", "Siliguri", "Durgapur"],
-    correctAns: '0',
-  ),
-  Quizzes(
-    questionTitle:
-        "Which river flows through Kolkata, the largest city in West Bengal?",
-    choices: ["Ganges", "Yamuna", "Brahmaputra", "Hooghly"],
-    correctAns: '3',
-  ),
-  Quizzes(
-    questionTitle:
-        "What is the famous sweet made from cottage cheese in West Bengal?",
-    choices: ["Rasgulla", "Gulab Jamun", "Jalebi", "Barfi"],
-    correctAns: '0',
-  ),
-  Quizzes(
-    questionTitle:
-        "Which festival is celebrated with grand processions and idol immersions in West Bengal?",
-    choices: ["Diwali", "Holi", "Durga Puja", "Eid"],
-    correctAns: '2',
-  ),
-  Quizzes(
-    questionTitle:
-        "What is the national park in West Bengal known for its Royal Bengal tigers?",
-    choices: [
-      "Sundarbans National Park",
-      "Buxa Tiger Reserve",
-      "Jaldapara National Park",
-      "Neora Valley National Park"
-    ],
-    correctAns: '0',
-  ),
-  Quizzes(
-    questionTitle: "Which famous poet and Nobel laureate was from West Bengal?",
-    choices: [
-      "Rabindranath Tagore",
-      "Kazi Nazrul Islam",
-      "Sukumar Ray",
-      "Bankim Chandra Chattopadhyay"
-    ],
-    correctAns: '0',
-  ),
-  Quizzes(
-    questionTitle: "What is the traditional folk dance of West Bengal?",
-    choices: ["Bharatanatyam", "Kuchipudi", "Kathak", "Baul"],
-    correctAns: '3',
-  ),
-  Quizzes(
-    questionTitle:
-        "Which is the famous cricket stadium in Kolkata, often called the 'Eden Gardens'?",
-    choices: [
-      "M. Chinnaswamy Stadium",
-      "Wankhede Stadium",
-      "Rajiv Gandhi International Cricket Stadium",
-      "Eden Gardens"
-    ],
-    correctAns: '3',
-  ),
-  Quizzes(
-    questionTitle: "What is the official language of West Bengal?",
-    choices: ["Hindi", "Bengali", "English", "Oriya"],
-    correctAns: '1',
-  ),
-  Quizzes(
-    questionTitle:
-        "Which famous religious site in West Bengal is known for its annual chariot festival?",
-    choices: [
-      "Belur Math",
-      "Kali Temple",
-      "Dakshineswar Temple",
-      "ISKCON Mayapur"
-    ],
-    correctAns: '2',
-  ),
-];
-
-List<Quizzes> myQuestions = [
-  Quizzes(
-    questionTitle: "What is my favorite color?",
-    choices: ["Blue", "Red", "Green", "Purple"],
-    correctAns: '0', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "Which is my preferred season?",
-    choices: ["Spring", "Summer", "Fall", "Winter"],
-    correctAns: '2', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "What is my favorite genre of books?",
-    choices: ["Mystery", "Fantasy", "Romance", "Science Fiction"],
-    correctAns: '1', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "What is my favorite type of pet?",
-    choices: ["Dog", "Cat", "Fish", "Bird"],
-    correctAns: '0', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "Which is my preferred mode of transportation?",
-    choices: ["Car", "Bicycle", "Public Transport", "Walking"],
-    correctAns: '3', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "What is my favorite dessert?",
-    choices: ["Chocolate Cake", "Ice Cream", "Cheesecake", "Fruit Salad"],
-    correctAns: '1', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "What is my favorite movie genre?",
-    choices: ["Action", "Comedy", "Drama", "Thriller"],
-    correctAns: '2', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "Which is my favorite holiday destination?",
-    choices: ["Beach Resort", "Mountain Retreat", "City Tour", "Countryside"],
-    correctAns: '0', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "What is my preferred type of exercise?",
-    choices: ["Running", "Yoga", "Weightlifting", "Swimming"],
-    correctAns: '1', // Replace with the correct index
-  ),
-  Quizzes(
-    questionTitle: "Which is my favorite board game?",
-    choices: ["Monopoly", "Chess", "Scrabble", "Risk"],
-    correctAns: '3', // Replace with the correct index
-  ),
-];
-
 class _TemplatesScreenState extends State<TemplatesScreen> {
   List<QuizTemplate> templateQuizItems = [
+    QuizTemplate(
+      templateQuizzes: personalQuiz,
+      templateQuizTitle: "Discovering [Your Name]",
+      templateQuizDescription:
+          "This is the most popular quizzes, please edit the title and description.",
+      templateQuizTags: 'personal, friends',
+    ),
     QuizTemplate(
       templateQuizzes: myQuestions,
       templateQuizTitle: "Discovering [Your Name]: A Quiz About Me!",
       templateQuizDescription:
-          "Welcome to the ultimate quiz about [Your Name]! Test your knowledge and see how well you know [Your Name]'s preferences, favorites, and lifestyle. From colors to travel destinations, dive into the details that make [Your Name] unique.",
+          "Welcome to the ultimate quiz about [Your Name]! Test your knowledge of [Your Name]'s preferences, favorites, and lifestyle. Dive into details, from colors to travel destinations, and discover what makes [Your Name] unique.",
       templateQuizTags: 'personal, friends',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: myTravelPreferencesQuiz,
+      templateQuizTitle: "Travel Preferences Quiz",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Dive into my wanderlust with the 'Travel Quiz'! Guess dream destinations, preferred stays, and more. Challenge friends to reveal the traveler in me!",
+      templateQuizTags: 'Travel',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: adventureTimeQuiz,
+      templateQuizTitle: "Discovering [Your Name]: Adventure Time Quiz",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Unleash adventure with the 'Adventure Time Quiz'! From heart-pounding activities to dream destinations, discover the thrill-seeker in me. Who's the ultimate aficionado among your friends?",
+      templateQuizTags: 'adventure, friends',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: sportsFanaticQuiz,
+      templateQuizTitle: "Discovering [Your Name]: Sports Fanatic Quiz",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Dive into sports with the 'Sports Fanatic Quiz.' Test your knowledge of my teams, workouts, and heart-racing sports moments. Can your friends claim victory in the arena of my sports passions? Let the games begin!",
+      templateQuizTags: 'personal, sports',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: movieBuffQuiz,
+      templateQuizTitle: "Discovering [Your Name]: Movie Buff Quiz",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Step into cinema with the 'Movie Buff Quiz'! Test knowledge of my films, genres, and quotes. Can friends predict the blockbuster details in my cinematic journey? Let the movie magic unfold!",
+      templateQuizTags: 'personal, movie, flim',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: techGeekTrivia,
+      templateQuizTitle: "Discovering [Your Name]: Tech Geek Trivia",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Tech Geek Trivia: Test knowledge of my tech preferences, gadgets, and digital obsessions. From cutting-edge innovations to geekery, can your friends emerge as the ultimate tech connoisseur?",
+      templateQuizTags: 'tech, friends',
     ),
     QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
+      templateQuizzes: literaryExplorerQuiz,
+      templateQuizTitle: "Discovering [Your Name]: Literary Explorer Quiz",
       templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
+          "Embark on a literary journey with the 'Literary Explorer Quiz.' Test knowledge of my reading preferences and favorite authors. Can your friends claim the title of the ultimate literary explorer in this quiz of words and wonders?",
+      templateQuizTags: 'Literary, books',
     ),
-    QuizTemplate(
-      templateQuizzes: westBengalQuestions,
-      templateQuizTitle: "West Bengal Knowledge Quiz",
-      templateQuizDescription:
-          "Test your knowledge about the Indian state of West Bengal with this easy quiz!",
-      templateQuizTags: 'West Bengal, India',
-    )
   ];
 
   @override

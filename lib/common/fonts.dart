@@ -1,37 +1,42 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppFonts {
-  static final TextStyle heading1 = GoogleFonts.poppins(
+  static const TextStyle heading1 = TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.bold,
+    fontFamily: 'Poppins',
   );
 
-  static final TextStyle heading2 = GoogleFonts.poppins(
+  static const TextStyle heading2 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
+    fontFamily: 'Poppins',
   );
 
-  static final TextStyle heading3 = GoogleFonts.poppins(
+  static const TextStyle heading3 = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
+    fontFamily: 'Poppins',
   );
 
-  static final TextStyle bodyText = GoogleFonts.roboto(
+  static const TextStyle bodyText = TextStyle(
     fontSize: 16,
     color: Colors.white,
+    fontFamily: 'Roboto',
   );
 
-  static final TextStyle button = GoogleFonts.montserrat(
+  static const TextStyle button = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.bold,
     color: Colors.white,
+    fontFamily: 'Montserrat',
   );
 
-  static final TextStyle link = GoogleFonts.roboto(
+  static const TextStyle link = TextStyle(
     fontSize: 16,
     color: CupertinoColors.activeBlue,
     decoration: TextDecoration.underline,
+    fontFamily: 'Roboto',
   );
 }

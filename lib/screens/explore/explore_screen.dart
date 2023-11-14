@@ -36,7 +36,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final userDoc = await firestore
         .collection('users')
         .orderBy('noOfQuizzes', descending: true)
-        .limit(3)
+        .limit(5)
         .get();
 
     for (final users in userDoc.docs) {
@@ -59,13 +59,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       final tagData = tagDoc.data();
       final tagItem = tagData['category'];
 
-      if (tagItems.length < 9) {
-        if (!tagItems.contains(tagItem)) {
-          tagItems.add(tagItem);
-        }
-      } else {
-        break;
-      }
+      tagItems.add(tagItem);
     }
 
     setState(() {
@@ -103,7 +97,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     // Top Players This Month leaderboard
                     const SizedBox(height: 8.0),
                     const Text(
-                      "Top 3 Users",
+                      "Top 5 Users",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,

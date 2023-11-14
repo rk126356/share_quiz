@@ -385,7 +385,7 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
       List<String> quizTitleSubstrings = [];
       for (int i = 0; i < quizTitle!.length; i++) {
         for (int j = i + 1; j <= quizTitle!.length; j++) {
-          quizTitleSubstrings.add(quizTitle!.substring(i, j));
+          quizTitleSubstrings.add(quizTitle!.substring(i, j).toLowerCase());
         }
       }
 
@@ -476,7 +476,7 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
           return AlertDialog(
             title: const Text("Error"),
             content: const Text(
-                "Please fill in all required fields and add at least 2 questions."),
+                "Please fill in all required fields and add at least 2 questions.\n\nIf you are using template then you have to edit the title, description, and tags."),
             actions: <Widget>[
               ElevatedButton(
                 child: const Text("OK"),
@@ -751,6 +751,38 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
                   ),
                 ],
               ),
+              if (previewQuestions.isNotEmpty)
+                Center(
+                  child: Container(
+                    // Styling for the timer box
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.blue,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 3,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    margin: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      'Total Questions: ${previewQuestions.length}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ),
+                  ),
+                ),
               if (previewQuestions.isNotEmpty)
                 Column(
                   children: previewQuestions.asMap().entries.map((entry) {

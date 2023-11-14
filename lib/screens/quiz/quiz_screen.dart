@@ -9,7 +9,7 @@ import 'package:share_quiz/screens/quiz/tabs/easy_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/hard_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/new_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/popular_quiz_tab.dart';
-import 'package:share_quiz/screens/quiz/tabs/random_quiz_tab.dart';
+import 'package:share_quiz/screens/quiz/tabs/likes_quiz_tab.dart';
 import 'package:share_quiz/screens/quiz/tabs/recommended_quiz_tab.dart';
 import 'package:share_quiz/utils/search_popup.dart';
 import 'package:share_quiz/widgets/small_category_box_widget.dart';
@@ -121,7 +121,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: TabBarView(
                 children: [
                   RecommendedQuizTab(),

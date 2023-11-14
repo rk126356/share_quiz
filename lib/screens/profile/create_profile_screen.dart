@@ -404,6 +404,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     ),
                     TextFormField(
                       controller: bio,
+                      maxLines: null,
                       decoration: const InputDecoration(
                         labelText: 'Bio',
                         prefixIcon: Icon(
@@ -427,37 +428,37 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         return null; // No error
                       },
                     ),
-                    const SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: () {
-                        _selectDate(context);
-                      },
-                      child: AbsorbPointer(
-                        child: TextFormField(
-                          controller: dobController,
-                          decoration: const InputDecoration(
-                            labelText: 'Date of Birth',
-                            prefixIcon: Icon(CupertinoIcons.calendar_today,
-                                color: AppColors.primaryColor), // Icon color
-                          ),
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Date of Birth is required';
-                            }
-                            DateTime dob = DateTime.parse(value);
-                            DateTime currentDate = DateTime.now();
-                            Duration difference = currentDate.difference(dob);
-                            int age = (difference.inDays / 365).floor();
+                    // const SizedBox(height: 10),
+                    // GestureDetector(
+                    //   onTap: () {
+                    //     _selectDate(context);
+                    //   },
+                    //   child: AbsorbPointer(
+                    //     child: TextFormField(
+                    //       controller: dobController,
+                    //       decoration: const InputDecoration(
+                    //         labelText: 'Date of Birth',
+                    //         prefixIcon: Icon(CupertinoIcons.calendar_today,
+                    //             color: AppColors.primaryColor), // Icon color
+                    //       ),
+                    //       validator: (value) {
+                    //         if (value!.isEmpty) {
+                    //           return 'Date of Birth is required';
+                    //         }
+                    //         DateTime dob = DateTime.parse(value);
+                    //         DateTime currentDate = DateTime.now();
+                    //         Duration difference = currentDate.difference(dob);
+                    //         int age = (difference.inDays / 365).floor();
 
-                            if (age < 14) {
-                              return 'You must be at least 14 years old to register';
-                            }
+                    //         if (age < 14) {
+                    //           return 'You must be at least 14 years old to register';
+                    //         }
 
-                            return null; // No error
-                          },
-                        ),
-                      ),
-                    ),
+                    //         return null; // No error
+                    //       },
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       items: <String>['Male', 'Female', 'Other']
@@ -484,46 +485,46 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                             color: AppColors.primaryColor), // Icon color
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 12),
-                      child: InternationalPhoneNumberInput(
-                        onInputChanged: (PhoneNumber number) {
-                          if (kDebugMode) {
-                            print(number.phoneNumber);
-                          }
-                        },
-                        onInputValidated: (bool value) {
-                          if (kDebugMode) {
-                            print(value);
-                          }
-                        },
-                        validator: (value) {
-                          if (value!.length < 5) {
-                            return 'Phone number is required';
-                          }
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(
+                    //       horizontal: 16.0, vertical: 12),
+                    //   child: InternationalPhoneNumberInput(
+                    //     onInputChanged: (PhoneNumber number) {
+                    //       if (kDebugMode) {
+                    //         print(number.phoneNumber);
+                    //       }
+                    //     },
+                    //     onInputValidated: (bool value) {
+                    //       if (kDebugMode) {
+                    //         print(value);
+                    //       }
+                    //     },
+                    //     validator: (value) {
+                    //       if (value!.length < 5) {
+                    //         return 'Phone number is required';
+                    //       }
 
-                          return null; // No error
-                        },
-                        selectorConfig: const SelectorConfig(
-                          selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
-                        ),
-                        ignoreBlank: false,
-                        autoValidateMode: AutovalidateMode.disabled,
-                        selectorTextStyle: const TextStyle(color: Colors.black),
-                        initialValue: number,
-                        textFieldController: phoneNumber,
-                        formatInput: true,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            signed: true, decimal: true),
-                        inputBorder: const OutlineInputBorder(),
-                        onSaved: (PhoneNumber number) {
-                          if (kDebugMode) {
-                            print('On Saved: $number');
-                          }
-                        },
-                      ),
-                    ),
+                    //       return null; // No error
+                    //     },
+                    //     selectorConfig: const SelectorConfig(
+                    //       selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+                    //     ),
+                    //     ignoreBlank: false,
+                    //     autoValidateMode: AutovalidateMode.disabled,
+                    //     selectorTextStyle: const TextStyle(color: Colors.black),
+                    //     initialValue: number,
+                    //     textFieldController: phoneNumber,
+                    //     formatInput: true,
+                    //     keyboardType: const TextInputType.numberWithOptions(
+                    //         signed: true, decimal: true),
+                    //     inputBorder: const OutlineInputBorder(),
+                    //     onSaved: (PhoneNumber number) {
+                    //       if (kDebugMode) {
+                    //         print('On Saved: $number');
+                    //       }
+                    //     },
+                    //   ),
+                    // ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {

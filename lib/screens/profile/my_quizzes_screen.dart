@@ -23,8 +23,7 @@ class _MyQuizzesScreenState extends State<MyQuizzesScreen> {
   DocumentSnapshot? lastDocumentPublic;
   DocumentSnapshot? lastDocumentPrivate;
   DocumentSnapshot? lastDocumentDrafts;
-
-  int listLength = 6;
+  int listLength = 10;
 
   bool _isLoading = false;
   bool _isButtonLoading = false;

@@ -5,16 +5,16 @@ import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
-class PopularQuizTab extends StatefulWidget {
-  const PopularQuizTab({
+class LikesQuizTab extends StatefulWidget {
+  const LikesQuizTab({
     super.key,
   });
 
   @override
-  State<PopularQuizTab> createState() => _PopularQuizTabState();
+  State<LikesQuizTab> createState() => _LikesQuizTabState();
 }
 
-class _PopularQuizTabState extends State<PopularQuizTab> {
+class _LikesQuizTabState extends State<LikesQuizTab> {
   final List<CreateQuizDataModel> quizItems = [];
   int listLength = 10;
 
@@ -44,15 +44,15 @@ class _PopularQuizTabState extends State<PopularQuizTab> {
       });
       quizCollection = await firestore
           .collection('allQuizzes')
-          .orderBy('views', descending: true)
+          .orderBy('likes', descending: true)
           .where('visibility', isEqualTo: 'Public')
-          .startAfter([lastDocument?['views']])
+          .startAfter([lastDocument?['likes']])
           .limit(listLength)
           .get();
     } else {
       quizCollection = await firestore
           .collection('allQuizzes')
-          .orderBy('views', descending: true)
+          .orderBy('likes', descending: true)
           .where('visibility', isEqualTo: 'Public')
           .limit(listLength)
           .get();

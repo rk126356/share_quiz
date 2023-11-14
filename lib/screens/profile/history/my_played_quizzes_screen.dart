@@ -18,7 +18,7 @@ class _MyPlayedQuizzesScreenState extends State<MyPlayedQuizzesScreen> {
   final List<CreateQuizDataModel> quizItems = [];
   bool _isLoading = false;
   Timestamp? _lastLoaded;
-  int perPage = 2;
+  int perPage = 10;
   bool _isButtonLoading = false;
 
   Future<void> fetchQuizzes(bool next, context) async {

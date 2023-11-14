@@ -2,8 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:language_picker/language_picker_dialog.dart';
+import 'package:language_picker/languages.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/controllers/language_controller.dart';
+import 'package:share_quiz/providers/quiz_language_provider.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/settings_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
@@ -258,9 +262,15 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _QuickLinks extends StatelessWidget {
+class _QuickLinks extends StatefulWidget {
+  @override
+  State<_QuickLinks> createState() => _QuickLinksState();
+}
+
+class _QuickLinksState extends State<_QuickLinks> {
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<QuestionsLanguageProvider>(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -335,6 +345,7 @@ class _QuickLinks extends StatelessWidget {
             );
           },
         ),
+
         ListTile(
           leading: const Icon(CupertinoIcons.settings,
               color: AppColors.primaryColor),

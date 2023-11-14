@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/navigation.dart';
+import 'package:share_quiz/providers/quiz_language_provider.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/login/login_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
@@ -17,6 +18,7 @@ void main() async {
   await Firebase.initializeApp();
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => UserProvider()),
+    ChangeNotifierProvider(create: (context) => QuestionsLanguageProvider()),
   ], child: const MyApp()));
 }
 

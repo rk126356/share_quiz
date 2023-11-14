@@ -6,7 +6,7 @@ import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
 class AllQuizTab extends StatefulWidget {
-  AllQuizTab({
+  const AllQuizTab({
     Key? key,
   }) : super(key: key);
 
@@ -16,8 +16,7 @@ class AllQuizTab extends StatefulWidget {
 
 class _AllQuizTabState extends State<AllQuizTab> {
   final List<CreateQuizDataModel> quizItems = [];
-
-  int listLength = 6;
+  int listLength = 10;
 
   DocumentSnapshot? lastDocument;
   bool _isLoading = false;
@@ -101,6 +100,7 @@ class _AllQuizTabState extends State<AllQuizTab> {
         creatorImage: quizData['creatorImage'],
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
+        difficulty: quizData['difficulty'],
       );
 
       quizItems.add(quizItem);

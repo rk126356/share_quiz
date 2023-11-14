@@ -20,7 +20,7 @@ class _MyFollowingsScreenState extends State<MyFollowingsScreen> {
   bool _isLoading = false;
   bool _isButtonLoading = false;
   DocumentSnapshot? lastDocument;
-  int listLength = 1;
+  int listLength = 10;
 
   void fetchFollowers(bool next, context) async {
     var data = Provider.of<UserProvider>(context, listen: false);

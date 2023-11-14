@@ -119,7 +119,7 @@ class _UserQuizzesScreenState extends State<UserQuizzesScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
-        title: Text('${widget.username}: Quizzes'),
+        title: Text('@${widget.username}: Quizzes'),
       ),
       body: _isLoading
           ? const LoadingWidget()

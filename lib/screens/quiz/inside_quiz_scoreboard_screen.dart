@@ -35,7 +35,7 @@ class _InsideQuizScoreBoardScreenState
     extends State<InsideQuizScoreBoardScreen> {
   List<Score> scores = [];
   List<Score> myScores = [];
-  int listLength = 1;
+  int listLength = 10;
 
   DocumentSnapshot? lastDocumentAllScore;
   DocumentSnapshot? lastDocumentMyScore;
@@ -51,7 +51,7 @@ class _InsideQuizScoreBoardScreenState
 
   void fetchMyScores(bool next, context) async {
     var data = Provider.of<UserProvider>(context, listen: false);
-    print(data.userData.uid);
+
     if (myScores.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -86,24 +86,26 @@ class _InsideQuizScoreBoardScreenState
     }
 
     if (scoreCollection.docs.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('No more scores available.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-      print('object');
+      if (next) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('No more scores available.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
       setState(() {
         _isButtonLoading = false;
         _isLoading = false;
@@ -307,18 +309,19 @@ class _InsideQuizScoreBoardScreenState
                                     ? const CircularProgressIndicator()
                                     : Column(
                                         children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              fetchMyScores(true, context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppColors
-                                                  .primaryColor, // Change the button color
+                                          if (myScores.length >= listLength)
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                fetchMyScores(true, context);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: AppColors
+                                                    .primaryColor, // Change the button color
+                                              ),
+                                              child: const Text('Load more...',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
                                             ),
-                                            child: const Text('Load more...',
-                                                style: TextStyle(
-                                                    color: Colors.white)),
-                                          ),
                                           const SizedBox(
                                             height: 25,
                                           )
@@ -349,18 +352,19 @@ class _InsideQuizScoreBoardScreenState
                                     ? const CircularProgressIndicator()
                                     : Column(
                                         children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              fetchScores(true, context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppColors
-                                                  .primaryColor, // Change the button color
+                                          if (scores.length >= listLength)
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                fetchScores(true, context);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: AppColors
+                                                    .primaryColor, // Change the button color
+                                              ),
+                                              child: const Text('Load more...',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
                                             ),
-                                            child: const Text('Load more...',
-                                                style: TextStyle(
-                                                    color: Colors.white)),
-                                          ),
                                           const SizedBox(
                                             height: 25,
                                           )

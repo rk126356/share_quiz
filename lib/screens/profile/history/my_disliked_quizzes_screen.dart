@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
-import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
-import 'package:share_quiz/widgets/my_quizzes_card_item.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
 class MyDislikedQuizzesScreen extends StatefulWidget {
@@ -21,7 +19,7 @@ class _MyDislikedQuizzesScreenState extends State<MyDislikedQuizzesScreen> {
   final List<CreateQuizDataModel> quizItems = [];
   bool _isLoading = false;
   Timestamp? _lastLoaded;
-  int perPage = 2;
+  int perPage = 10;
   bool _isButtonLoading = false;
 
   Future<void> fetchQuizzes(bool next, context) async {
