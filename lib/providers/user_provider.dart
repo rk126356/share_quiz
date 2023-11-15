@@ -13,11 +13,22 @@ class UserProvider extends ChangeNotifier {
   bool _isFirstLaunch = true;
   bool _isNewOpen = true;
   bool _isBioAdded = false;
+  List<String> _quizViews = [];
 
   UserModel get userData => _userData;
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isNewOpen => _isNewOpen;
   bool get isBioAdded => _isBioAdded;
+  List get quizViews => _quizViews;
+
+  void setNewQuizViews(String newQuizView) async {
+    _quizViews.add(newQuizView);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('viewsList', _quizViews);
+    if (_quizViews.length > 50) {
+      await prefs.remove('viewsList');
+    }
+  }
 
   setIsNewOpen(bool value) {
     _isNewOpen = value;
@@ -57,6 +68,11 @@ class UserProvider extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool? isFirstLaunch = prefs.getBool('firstLaunch');
     bool? isBioAdded = prefs.getBool('isBioAdded');
+    List<String>? viewsList = prefs.getStringList('viewsList');
+
+    if (viewsList != null) {
+      _quizViews = viewsList;
+    }
 
     if (isFirstLaunch != null) {
       _isFirstLaunch = isFirstLaunch;

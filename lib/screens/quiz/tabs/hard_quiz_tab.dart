@@ -103,6 +103,7 @@ class _HardQuizTabState extends State<HardQuizTab> {
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
         difficulty: quizData['difficulty'],
+        creatorUsername: quizData['creatorUsername'],
       );
 
       quizItems.add(quizItem);

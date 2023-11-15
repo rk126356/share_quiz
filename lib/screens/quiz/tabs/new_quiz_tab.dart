@@ -105,6 +105,7 @@ class _MediumQuizTabState extends State<MediumQuizTab> {
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
         difficulty: quizData['difficulty'],
+        creatorUsername: quizData['creatorUsername'],
       );
 
       quizItems.add(quizItem);

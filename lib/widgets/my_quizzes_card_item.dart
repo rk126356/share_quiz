@@ -109,7 +109,6 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
                 MaterialPageRoute(
                     builder: (context) => InsideQuizScreen(
                           quizID: widget.quizData.quizID!,
-                          isViewsUpdated: isViewsUpdated,
                         )),
               );
             },

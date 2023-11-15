@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
-import 'package:share_quiz/controllers/update_views_firebase.dart';
+import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -30,17 +31,19 @@ class _QuizCardItemsState extends State<QuizCardItems> {
   bool _isDisliked = false;
 
   updateViewsHere() async {
+    var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    final quizCollection = await firestore
-        .collection('users/${widget.quizData.creatorUserID}/myQuizzes')
-        .doc(widget.quizData.quizID)
-        .get();
+    if (!data.quizViews.contains(widget.quizData.quizID)) {
+      final quizCollection = await firestore
+          .collection('allQuizzes')
+          .doc(widget.quizData.quizID)
+          .get();
 
-    final quizDataMap = quizCollection.data();
-    int currentViews = quizDataMap?['views'] ?? 0;
-    int updatedViews = currentViews + 1;
-    await quizCollection.reference.update({'views': updatedViews});
+      await quizCollection.reference.update({'views': FieldValue.increment(1)});
+
+      data.setNewQuizViews(widget.quizData.quizID!);
+    }
   }
 
   Future<void> checkIfQuizIsLiked() async {
@@ -178,7 +181,6 @@ class _QuizCardItemsState extends State<QuizCardItems> {
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
       updateViewsHere();
-      updateViews(widget.quizData.quizID, widget.quizData.creatorUserID);
       isViewsUpdated = true;
     }
 
@@ -210,7 +212,6 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 MaterialPageRoute(
                     builder: (context) => InsideQuizScreen(
                           quizID: widget.quizData.quizID!,
-                          isViewsUpdated: isViewsUpdated,
                         )),
               );
             },

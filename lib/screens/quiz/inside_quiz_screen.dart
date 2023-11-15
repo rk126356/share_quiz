@@ -25,13 +25,11 @@ import 'package:share_quiz/widgets/stats_list_widget.dart';
 
 class InsideQuizScreen extends StatefulWidget {
   final String quizID;
-  final bool? isViewsUpdated;
   final bool? isQuickPlay;
 
   const InsideQuizScreen({
     Key? key,
     required this.quizID,
-    this.isViewsUpdated,
     this.isQuickPlay,
   }) : super(key: key);
 
@@ -58,6 +56,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
       _isLoading = true;
     });
     final firestore = FirebaseFirestore.instance;
+    var varData = Provider.of<UserProvider>(context, listen: false);
 
     final quizCollection =
         await firestore.collection('allQuizzes').doc(widget.quizID).get();
@@ -74,12 +73,14 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
 
         int updatedViews = currentViews;
 
-        if (widget.isViewsUpdated != null) {
-          updatedViews + 1;
-          await _quizCollection.reference
+        final firestore = FirebaseFirestore.instance;
+
+        if (!varData.quizViews.contains(widget.quizID)) {
+          await quizCollection.reference
               .update({'views': FieldValue.increment(1)});
-        } else {
-          updatedViews - 1;
+
+          varData.setNewQuizViews(widget.quizID!);
+          updatedViews + 1;
         }
 
         String userName = 'Not found';

@@ -471,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen>
                       },
                       icon: const Icon(CupertinoIcons.search)),
                   IconButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -479,6 +479,9 @@ class _HomeScreenState extends State<HomeScreen>
                                     isFollowingTab: _isForYouTab,
                                   )),
                         );
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        await prefs.remove('lastCreatedAt');
                       },
                       icon: const Icon(CupertinoIcons.refresh)),
                 ],
@@ -647,12 +650,17 @@ class QuizTikTokItems extends StatefulWidget {
 class _QuizTikTokItemsState extends State<QuizTikTokItems>
     with SingleTickerProviderStateMixin {
   updateViewsHere() async {
+    var data = Provider.of<UserProvider>(context, listen: false);
     final firestore = FirebaseFirestore.instance;
 
-    final quizCollection =
-        await firestore.collection('allQuizzes').doc(widget.quizID).get();
+    if (!data.quizViews.contains(widget.quizID)) {
+      final quizCollection =
+          await firestore.collection('allQuizzes').doc(widget.quizID).get();
 
-    await quizCollection.reference.update({'views': FieldValue.increment(1)});
+      await quizCollection.reference.update({'views': FieldValue.increment(1)});
+
+      data.setNewQuizViews(widget.quizID!);
+    }
   }
 
   bool isViewsUpdated = false;
@@ -708,7 +716,6 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                     MaterialPageRoute(
                                         builder: (context) => InsideQuizScreen(
                                               quizID: widget.quizID!,
-                                              isViewsUpdated: isViewsUpdated,
                                             )),
                                   );
                                 },
@@ -748,8 +755,6 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                             builder: (context) =>
                                                 InsideQuizScreen(
                                                   quizID: widget.quizID!,
-                                                  isViewsUpdated:
-                                                      isViewsUpdated,
                                                 )),
                                       );
                                     },
@@ -791,8 +796,6 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                                                 InsideQuizScreen(
                                                   isQuickPlay: true,
                                                   quizID: widget.quizID!,
-                                                  isViewsUpdated:
-                                                      isViewsUpdated,
                                                 )),
                                       );
                                     },
