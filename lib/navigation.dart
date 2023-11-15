@@ -18,7 +18,7 @@ class NavigationScreen extends StatelessWidget {
       const QuizScreen(),
       const CreateScreen(),
       const ExploreScreen(),
-      const ProfileScreen()
+      ProfileScreen()
     ];
   }
 

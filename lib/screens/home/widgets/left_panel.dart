@@ -1,11 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/screens/home/colors.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 
-class LeftPanel extends StatelessWidget {
-  const LeftPanel({
+class LeftPanel extends StatefulWidget {
+  LeftPanel({
     Key? key,
     required this.size,
     required this.name,
@@ -15,23 +16,64 @@ class LeftPanel extends StatelessWidget {
     required this.topScorerImage,
     required this.creatorUserID,
     required this.topScorerUid,
+    required this.quizID,
   }) : super(key: key);
 
   final Size size;
   final String name;
   final String username;
   final List<dynamic> categories;
-  final String topScorerName;
-  final String topScorerImage;
+  String topScorerName;
+  String topScorerImage;
   final String creatorUserID;
   final String topScorerUid;
+  final String quizID;
+
+  @override
+  State<LeftPanel> createState() => _LeftPanelState();
+}
+
+class _LeftPanelState extends State<LeftPanel> {
+  get firestore => null;
+
+  void fetchTopScorer() async {
+    final scoreCollection = await firestore
+        .collection('allQuizzes/${widget.quizID}/scoreBoard')
+        .orderBy('playerScore', descending: true)
+        .orderBy('timeTaken')
+        .orderBy('attemptNo')
+        .limit(1)
+        .get();
+
+    final documents = scoreCollection.docs;
+    final topScorer = documents.first.data();
+
+    final topScorerUserDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(topScorer['playerUid']);
+    final topScorerUserDocSnapshot = await topScorerUserDoc.get();
+
+    final topScorerData = topScorerUserDocSnapshot.data();
+
+    setState(() {
+      widget.topScorerName = topScorerData?['displayName'];
+      widget.topScorerImage = topScorerData?['avatarUrl'];
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchTopScorer();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       //  height: 100,
-      height: size.height,
-      width: size.width * 0.78,
+      height: widget.size.height,
+      width: widget.size.width * 0.78,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
@@ -42,33 +84,22 @@ class LeftPanel extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (context) => InsideProfileScreen(
-                          userId: creatorUserID,
+                          userId: widget.creatorUserID,
                         )),
               );
             },
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => InsideProfileScreen(
-                            userId: creatorUserID,
-                          )),
-                );
-              },
-              child: Text(
-                name,
-                style: const TextStyle(color: white, fontSize: 20),
-              ),
+            child: Text(
+              widget.name,
+              style: const TextStyle(color: white, fontSize: 20),
             ),
           ),
           Text(
-            '@$username',
+            '@${widget.username}',
             style: const TextStyle(color: white, fontSize: 12),
           ),
           const SizedBox(height: 10),
           Row(
-            children: categories!.asMap().entries.map((entry) {
+            children: widget.categories!.asMap().entries.map((entry) {
               final tagName = entry.value;
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
@@ -92,12 +123,12 @@ class LeftPanel extends StatelessWidget {
           const SizedBox(height: 10),
           InkWell(
             onTap: () {
-              if (topScorerUid != '') {
+              if (widget.topScorerUid != '') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => InsideProfileScreen(
-                            userId: topScorerUid,
+                            userId: widget.topScorerUid,
                           )),
                 );
               }
@@ -116,7 +147,7 @@ class LeftPanel extends StatelessWidget {
                   ),
                   child: ClipOval(
                     child: Image.network(
-                      topScorerImage,
+                      widget.topScorerImage,
                       fit: BoxFit.cover,
                       width: 35,
                       height: 35,
@@ -127,7 +158,7 @@ class LeftPanel extends StatelessWidget {
                   width: 5,
                 ),
                 Text(
-                  'Top Scorer: $topScorerName',
+                  'Top Scorer: ${widget.topScorerName}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,

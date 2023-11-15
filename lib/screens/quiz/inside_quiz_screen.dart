@@ -117,6 +117,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           final topScorerUserDocSnapshot = await topScorerUserDoc.get();
 
           final topScorerData = topScorerUserDocSnapshot.data();
+
           setState(() {
             topScorerName = topScorerData?['displayName'];
             topScorerImage = topScorerData?['avatarUrl'];

@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/navigation.dart';
+import 'package:share_quiz/providers/daily_login_provider.dart';
 import 'package:share_quiz/providers/quiz_language_provider.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/extra-screens/onboarding_screen.dart';
 import 'package:share_quiz/screens/login/login_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
@@ -19,6 +21,7 @@ void main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => UserProvider()),
     ChangeNotifierProvider(create: (context) => QuestionsLanguageProvider()),
+    ChangeNotifierProvider(create: (context) => DailyLoginProvider()),
   ], child: const MyApp()));
 }
 
@@ -72,13 +75,19 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/',
           builder: (BuildContext context, GoRouterState state) {
-            return user == null ? const LoginScreen() : NavigationScreen();
+            return user == null ? OnBoardingScreen() : NavigationScreen();
           },
           routes: <RouteBase>[
             GoRoute(
               path: 'app',
               builder: (BuildContext context, GoRouterState state) {
                 return NavigationScreen();
+              },
+            ),
+            GoRoute(
+              path: 'start',
+              builder: (BuildContext context, GoRouterState state) {
+                return OnBoardingScreen();
               },
             ),
             GoRoute(
@@ -95,18 +104,12 @@ class MyApp extends StatelessWidget {
                 return const LoginScreen();
               },
             ),
-            GoRoute(
-              path: 'edit-profile',
-              builder: (BuildContext context, GoRouterState state) {
-                return const CreateProfileScreen();
-              },
-            ),
           ],
         ),
       ],
     );
 
-    if (kDebugMode) {
+    if (!kDebugMode) {
       return MaterialApp(
         title: 'ShareQuiz',
         theme: ThemeData(

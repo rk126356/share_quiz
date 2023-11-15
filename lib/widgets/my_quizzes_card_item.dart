@@ -76,10 +76,16 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkIfQuizIsLiked();
+    checkIfQuizIsDisliked();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
-      checkIfQuizIsLiked();
-      checkIfQuizIsDisliked();
       updateViews();
       isViewsUpdated = true;
     }

@@ -96,6 +96,7 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
         creatorImage: quizData['creatorImage'],
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
+        creatorUsername: quizData['creatorUsername'],
       );
 
       quizItems.add(quizItem);

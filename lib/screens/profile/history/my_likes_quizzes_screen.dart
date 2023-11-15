@@ -92,6 +92,7 @@ class _MyLikedQuizzesScreenState extends State<MyLikedQuizzesScreen> {
           creatorImage: quizData['creatorImage'],
           creatorName: quizData['creatorName'],
           creatorUserID: quizData['creatorUserID'],
+          creatorUsername: quizData['creatorUsername'],
         );
 
         quizItems.add(quizItem);

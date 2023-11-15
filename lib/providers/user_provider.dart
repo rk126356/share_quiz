@@ -15,7 +15,6 @@ class UserProvider extends ChangeNotifier {
   bool _isBioAdded = false;
 
   UserModel get userData => _userData;
-
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isNewOpen => _isNewOpen;
   bool get isBioAdded => _isBioAdded;

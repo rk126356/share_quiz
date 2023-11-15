@@ -6,11 +6,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
+import 'package:share_quiz/providers/daily_login_provider.dart';
 import 'package:share_quiz/providers/user_provider.dart';
+import 'package:share_quiz/screens/extra-screens/onboarding_screen.dart';
 import 'package:uuid/uuid.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,14 +21,14 @@ class LoginScreen extends StatefulWidget {
 late final User _user;
 
 class _LoginScreenState extends State<LoginScreen> {
-  // void checkIsFristLaunch() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   bool? isFirstLaunch = prefs.getBool('firstLaunch');
-  //   if (isFirstLaunch == null) {
-  //     Navigator.pushReplacement(
+  // void checkIsFristLaunch() {
+  //   final dailyLogin = Provider.of<DailyLoginProvider>(context, listen: false);
+  //   print(dailyLogin.firstLaunch);
+  //   if (dailyLogin.firstLaunch) {
+  //     Navigator.push(
   //       context,
   //       MaterialPageRoute(
-  //         builder: (context) => OnBoarding(),
+  //         builder: (context) => OnBoardingScreen(),
   //       ),
   //     );
   //   }

@@ -127,6 +127,12 @@ class _RightPanelState extends State<RightPanel> {
           await doc.reference.delete();
         }
 
+        if (_isDisliked) {
+          for (final doc in dislikedQuizSnapshot.docs) {
+            await doc.reference.delete();
+          }
+        }
+
         setState(() {
           _isLiked = false;
           int update = quizDataMap?['likes'] - 1;

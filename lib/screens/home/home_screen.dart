@@ -22,7 +22,9 @@ import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:share_quiz/utils/search_popup.dart';
+import 'package:share_quiz/utils/tools.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool? isFollowingTab;
@@ -37,12 +39,12 @@ class _HomeScreenState extends State<HomeScreen>
   late TabController _tabController;
   bool _isLoading = false;
   bool _isForYouTab = true;
-  int forYouTabLength = 29;
+  int forYouTabLength = 2;
   int followingTabLemgth = 19;
 
   List<CreateQuizDataModel> forYouQuizzes = [];
   List<CreateQuizDataModel> followingQuizzes = [];
-  DocumentSnapshot? lastDocumentForYou;
+  String? createdAt;
   DocumentSnapshot? lastDocumentFollowings;
   DocumentSnapshot? lastFollowingQuiz;
 
@@ -52,27 +54,53 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() {
       _isLoading = true;
     });
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final QuerySnapshot<Map<String, dynamic>> quizCollection;
 
     if (next) {
+      final st = stringToTimestamp(createdAt!);
       quizCollection = await firestore
           .collection('allQuizzes')
           .where('visibility', isEqualTo: 'Public')
           .orderBy('createdAt', descending: true)
-          .startAfter([lastDocumentForYou?['createdAt']])
-          .limit(31)
+          .startAfter([st])
+          .limit(3)
           .get();
     } else {
-      quizCollection = await firestore
-          .collection('allQuizzes')
-          .orderBy('createdAt', descending: true)
-          .where('visibility', isEqualTo: 'Public')
-          .limit(31)
-          .get();
+      String? latCreatedAt = prefs.getString('lastCreatedAt');
+
+      if (latCreatedAt != null) {
+        final st = stringToTimestamp(latCreatedAt!);
+
+        quizCollection = await firestore
+            .collection('allQuizzes')
+            .where('visibility', isEqualTo: 'Public')
+            .orderBy('createdAt', descending: true)
+            .startAfter([st])
+            .limit(3)
+            .get();
+      } else {
+        quizCollection = await firestore
+            .collection('allQuizzes')
+            .orderBy('createdAt', descending: true)
+            .where('visibility', isEqualTo: 'Public')
+            .limit(3)
+            .get();
+      }
     }
 
-    lastDocumentForYou =
+    if (quizCollection.docs.isEmpty) {
+      await prefs.remove('lastCreatedAt');
+      fetchForYouQuizzes(false);
+    }
+
+    final lastDocument =
         quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+    createdAt = timestampToString(lastDocument?['createdAt']);
+
+    await prefs.setString('lastCreatedAt', createdAt!);
 
     bool limit = false;
     bool limit2 = false;
@@ -820,6 +848,7 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                           children: [
                             LeftPanel(
                               size: widget.size,
+                              quizID: widget.quizID!,
                               creatorUserID: widget.creatorUserID,
                               name: widget.name,
                               username: widget.username,

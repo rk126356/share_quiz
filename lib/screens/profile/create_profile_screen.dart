@@ -167,7 +167,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             if (widget.isEdit == null) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
               );
             } else {
               Navigator.push(
@@ -206,7 +206,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           if (widget.isEdit == null) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
           } else {
             Navigator.push(

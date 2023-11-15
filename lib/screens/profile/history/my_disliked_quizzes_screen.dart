@@ -92,6 +92,7 @@ class _MyDislikedQuizzesScreenState extends State<MyDislikedQuizzesScreen> {
           creatorImage: quizData['creatorImage'],
           creatorName: quizData['creatorName'],
           creatorUserID: quizData['creatorUserID'],
+          creatorUsername: quizData['creatorUsername'],
         );
 
         quizItems.add(quizItem);

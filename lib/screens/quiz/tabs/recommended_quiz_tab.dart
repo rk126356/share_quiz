@@ -102,6 +102,7 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
         difficulty: quizData['difficulty'],
+        creatorUsername: quizData['creatorUsername'],
       );
 
       quizItems.add(quizItem);

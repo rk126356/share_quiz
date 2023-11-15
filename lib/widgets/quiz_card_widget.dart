@@ -8,6 +8,7 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
 import 'package:share_quiz/controllers/update_views_firebase.dart';
+import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 
@@ -117,6 +118,12 @@ class _QuizCardItemsState extends State<QuizCardItems> {
           await doc.reference.delete();
         }
 
+        if (_isDisliked) {
+          for (final doc in dislikedQuizSnapshot.docs) {
+            await doc.reference.delete();
+          }
+        }
+
         setState(() {
           _isLiked = false;
           int update = quizDataMap?['likes'] - 1;
@@ -160,10 +167,16 @@ class _QuizCardItemsState extends State<QuizCardItems> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkIfQuizIsLiked();
+    checkIfQuizIsDisliked();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (!isViewsUpdated) {
-      checkIfQuizIsLiked();
-      checkIfQuizIsDisliked();
       updateViewsHere();
       updateViews(widget.quizData.quizID, widget.quizData.creatorUserID);
       isViewsUpdated = true;
@@ -201,15 +214,18 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                         )),
               );
             },
-            title: Text(
-              widget.quizData.quizTitle!,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            title: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                widget.quizData.quizTitle!,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             subtitle: Padding(
-              padding: const EdgeInsets.only(top: 5),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 quizDescription!,
                 style: const TextStyle(
@@ -233,16 +249,52 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 },
                 icon: const Icon(CupertinoIcons.arrowshape_turn_up_right)),
           ),
+          InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InsideProfileScreen(
+                  userId: widget.quizData.creatorUserID!,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage:
+                        NetworkImage(widget.quizData.creatorImage!),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        widget.quizData.creatorName!,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        '@${widget.quizData.creatorUsername!}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Icon(
-                  CupertinoIcons.number,
-                  color: CupertinoColors.activeBlue,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
+                // const Icon(
+                //   CupertinoIcons.number,
+                //   color: CupertinoColors.activeBlue,
+                //   size: 20,
+                // ),
+                // const SizedBox(width: 8),
                 Row(
                   children:
                       widget.quizData.categories!.asMap().entries.map((entry) {

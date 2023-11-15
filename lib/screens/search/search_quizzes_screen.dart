@@ -28,8 +28,8 @@ class _SearchQuizzesScreenState extends State<SearchQuizzesScreen> {
     }
 
     _usersCollection
-        .where('quizTitleSubstrings', arrayContains: searchText)
-        .limit(10)
+        .where('quizTitleSubstrings', arrayContains: searchText.toLowerCase())
+        .limit(15)
         .get()
         .then((querySnapshot) {
       setState(() {

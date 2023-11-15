@@ -123,12 +123,14 @@ class _ChoiceButtonState extends State<ChoiceButton> {
                   ),
                 ),
               ),
-              Text(
-                choice != null ? choice! : widget.text,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  choice != null ? choice! : widget.text,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

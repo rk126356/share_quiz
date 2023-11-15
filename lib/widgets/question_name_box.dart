@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_quiz/api/translation_api.dart';
 import 'package:share_quiz/providers/quiz_language_provider.dart';
 import 'package:translator/translator.dart';
 
@@ -54,11 +55,11 @@ class _QuestionNameBoxState extends State<QuestionNameBox> {
     }
   }
 
-  void translateQ() {
+  void translateQ() async {
     final qLanguage =
         Provider.of<QuestionsLanguageProvider>(context, listen: false);
     final translator = GoogleTranslator();
-    print(qLanguage.languageName);
+
     if (qLanguage.languageName != 'None') {
       translator
           .translate(widget.name, from: 'auto', to: qLanguage.language)

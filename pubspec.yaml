@@ -62,6 +62,8 @@ dependencies:
   translator: ^0.1.7
   confetti: ^0.7.0
   language_picker: ^0.4.3
+  http: ^0.13.6
+  html_unescape: ^2.0.0
 
 dev_dependencies:
   flutter_test:

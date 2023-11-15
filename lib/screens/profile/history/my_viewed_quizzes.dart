@@ -91,6 +91,7 @@ class _MyViewedQuizzesScreenState extends State<MyViewedQuizzesScreen> {
           creatorImage: quizData['creatorImage'],
           creatorName: quizData['creatorName'],
           creatorUserID: quizData['creatorUserID'],
+          creatorUsername: quizData['creatorUsername'],
         );
 
         quizItems.add(quizItem);

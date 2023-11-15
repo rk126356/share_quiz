@@ -1,13 +1,12 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:language_picker/language_picker_dialog.dart';
-import 'package:language_picker/languages.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
-import 'package:share_quiz/controllers/language_controller.dart';
-import 'package:share_quiz/providers/quiz_language_provider.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/settings_screen.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
@@ -15,6 +14,7 @@ import 'package:share_quiz/screens/profile/my_followers_screen.dart';
 import 'package:share_quiz/screens/profile/my_followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_history_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -270,7 +270,7 @@ class _QuickLinks extends StatefulWidget {
 class _QuickLinksState extends State<_QuickLinks> {
   @override
   Widget build(BuildContext context) {
-    final languageProvider = Provider.of<QuestionsLanguageProvider>(context);
+    // final languageProvider = Provider.of<QuestionsLanguageProvider>(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -309,7 +309,6 @@ class _QuickLinksState extends State<_QuickLinks> {
             );
           },
         ),
-
         ListTile(
           leading:
               const Icon(CupertinoIcons.folder, color: AppColors.primaryColor),
@@ -345,7 +344,6 @@ class _QuickLinksState extends State<_QuickLinks> {
             );
           },
         ),
-
         ListTile(
           leading: const Icon(CupertinoIcons.settings,
               color: AppColors.primaryColor),
@@ -363,21 +361,21 @@ class _QuickLinksState extends State<_QuickLinks> {
             );
           },
         ),
-
-        // ListTile(
-        //   leading: const Icon(CupertinoIcons.exclamationmark,
-        //       color: AppColors.primaryColor),
-        //   title: const Text("Clear Data"),
-        //   trailing: const Icon(
-        //     CupertinoIcons.forward,
-        //     color: AppColors.primaryColor,
-        //   ),
-        //   onTap: () async {
-        //     SharedPreferences preferences =
-        //         await SharedPreferences.getInstance();
-        //     await preferences.clear();
-        //   },
-        // ),
+        if (kDebugMode)
+          ListTile(
+            leading: const Icon(CupertinoIcons.exclamationmark,
+                color: AppColors.primaryColor),
+            title: const Text("Clear Data"),
+            trailing: const Icon(
+              CupertinoIcons.forward,
+              color: AppColors.primaryColor,
+            ),
+            onTap: () async {
+              SharedPreferences preferences =
+                  await SharedPreferences.getInstance();
+              await preferences.clear();
+            },
+          ),
         const SizedBox(
           height: 30,
         )

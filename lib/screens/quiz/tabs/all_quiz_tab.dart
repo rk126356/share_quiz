@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/utils/tools.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
@@ -18,7 +19,7 @@ class _AllQuizTabState extends State<AllQuizTab> {
   final List<CreateQuizDataModel> quizItems = [];
   int listLength = 10;
 
-  DocumentSnapshot? lastDocument;
+  String? createdAt;
   bool _isLoading = false;
   bool _isButtonLoading = false;
 
@@ -42,11 +43,12 @@ class _AllQuizTabState extends State<AllQuizTab> {
       setState(() {
         _isButtonLoading = true;
       });
+      final st = stringToTimestamp(createdAt!);
       quizCollection = await firestore
           .collection('allQuizzes')
           .orderBy('createdAt', descending: true)
           .where('visibility', isEqualTo: 'Public')
-          .startAfter([lastDocument?['createdAt']])
+          .startAfter([st])
           .limit(listLength)
           .get();
     } else {
@@ -83,8 +85,10 @@ class _AllQuizTabState extends State<AllQuizTab> {
       return;
     }
 
-    lastDocument =
+    final lastDocument =
         quizCollection.docs.isNotEmpty ? quizCollection.docs.last : null;
+
+    createdAt = timestampToString(lastDocument?['createdAt']);
 
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
@@ -101,6 +105,7 @@ class _AllQuizTabState extends State<AllQuizTab> {
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
         difficulty: quizData['difficulty'],
+        creatorUsername: quizData['creatorUsername'],
       );
 
       quizItems.add(quizItem);

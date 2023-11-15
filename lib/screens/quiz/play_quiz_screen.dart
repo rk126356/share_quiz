@@ -55,6 +55,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
     if (widget.quizData.timer != 999) {
       startTimer();
     }
+    updatePlaysNow();
   }
 
   Future<void> checkInternetConnection() async {
@@ -186,7 +187,6 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       });
     }
     updateScore();
-    updatePlaysNow();
   }
 
   void startTimer() {
