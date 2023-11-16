@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/quiz_data_class.dart';
+import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -24,6 +27,12 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
+    var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (data.userData.username == null || data.userData.username == '') {
+      SystemNavigator.pop();
+    }
+
     return Scaffold(
       backgroundColor: Colors.white10,
       appBar: AppBar(

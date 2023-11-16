@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/quiz_template_model.dart';
@@ -508,6 +509,10 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (data.userData.username == null || data.userData.username == '') {
+      SystemNavigator.pop();
+    }
 
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());

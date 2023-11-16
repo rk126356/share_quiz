@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/user_model.dart';
 import 'package:share_quiz/common/colors.dart';
+import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
@@ -75,6 +78,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (data.userData.username == null || data.userData.username == '') {
+      SystemNavigator.pop();
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,

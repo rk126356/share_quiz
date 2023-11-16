@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
@@ -21,6 +22,12 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var data = Provider.of<UserProvider>(context, listen: false);
+
+    if (data.userData.username == null || data.userData.username == '') {
+      SystemNavigator.pop();
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(

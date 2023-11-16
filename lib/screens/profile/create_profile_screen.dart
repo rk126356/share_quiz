@@ -151,7 +151,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               'searchFields': username.text.toLowerCase(),
             });
 
-            // Update the user data in the Provider.
             Provider.of<UserProvider>(context, listen: false)
                 .setUserData(UserModel(
               username: username.text,
@@ -163,11 +162,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               avatarUrl: avatarUrl,
             ));
 
-            // Navigate based on whether it's an edit or a new user.
             if (widget.isEdit == null) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             } else {
               Navigator.push(
@@ -181,7 +179,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               ? await uploadImageToStorage(pickedImage)
               : userImage;
 
-          // Update user data.
           await userDoc.update({
             'displayName': fullName.text,
             'bio': bio.text,
@@ -191,7 +188,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             'avatarUrl': avatarUrl,
           });
 
-          // Update the user data in the Provider.
           Provider.of<UserProvider>(context, listen: false)
               .setUserData(UserModel(
             name: fullName.text,

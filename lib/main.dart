@@ -85,12 +85,6 @@ class MyApp extends StatelessWidget {
               },
             ),
             GoRoute(
-              path: 'start',
-              builder: (BuildContext context, GoRouterState state) {
-                return OnBoardingScreen();
-              },
-            ),
-            GoRoute(
               path: 'play/:quizCode',
               builder: (BuildContext context, GoRouterState state) {
                 return InsideQuizScreen(
