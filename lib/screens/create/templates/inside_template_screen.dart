@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/Models/quiz_template_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/screens/create/templates/quiz_about_me_template.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/utils/generate_quizid.dart';
 import 'package:share_quiz/utils/remove_line_breakes.dart';
@@ -401,8 +399,8 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
       quizData.creatorName = data.userData.name;
       quizData.creatorImage = data.userData.avatarUrl;
       quizData.topScorerImage =
-          'https://www.nicepng.com/png/detail/186-1869910_ic-question-mark-roblox-question-mark-avatar.png';
-      quizData.topScorerName = 'No One';
+          'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2F186-1869910_ic-question-mark-roblox-question-mark-avatar.png?alt=media&token=272f2179-f476-44a3-9a6a-10dfe85f64cd';
+      quizData.topScorerName = 'No One Yet!';
       quizData.shares = 0;
       quizData.creatorUserID = data.userData.uid;
       quizData.createdAt = Timestamp.now();
@@ -417,6 +415,15 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
           .collection('allQuizzes')
           .doc(quizData.quizID)
           .set(quizData.toJson());
+
+      List<dynamic>? categories = quizData.categories;
+
+      for (final category in categories!) {
+        await _firestore
+            .collection('allTags')
+            .doc(category)
+            .set({'category': category});
+      }
 
       if (quizData.visibility == 'Public') {
         await _firestore
@@ -440,6 +447,7 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
       setState(() {
         _isLoading = false;
       });
+
       if (quizData.visibility == 'Public') {
         Navigator.push(
           context,
@@ -510,14 +518,6 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
 
-    if (data.userData.username == null || data.userData.username == '') {
-      SystemNavigator.pop();
-    }
-
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Scaffold(
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(
@@ -580,295 +580,300 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
         title: const Text("Create Quiz"),
         backgroundColor: AppColors.primaryColor, // Dark purple app bar
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5),
-          child: Column(
-            children: [
-              TextField(
-                controller: quizTitle,
-                maxLength: 70,
-                decoration: const InputDecoration(
-                  icon: Icon(
-                    Icons.title,
-                    color: AppColors.primaryColor,
-                  ),
-                  labelText: 'Quiz Title',
-                ),
-                onChanged: (text) {
-                  setState(() {
-                    quizData.quizTitle = text;
-                  });
-                },
-              ),
-              TextField(
-                controller: quizDescription,
-                maxLines: null,
-                maxLength: 280,
-                decoration: const InputDecoration(
-                  icon: Icon(
-                    Icons.description,
-                    color: AppColors.primaryColor,
-                  ),
-                  labelText: 'Quiz Description',
-                ),
-                onChanged: (text) {
-                  setState(() {
-                    quizData.quizDescription = text;
-                  });
-                },
-              ),
-              TextField(
-                controller: quizTags,
-                maxLength: 30,
-                decoration: const InputDecoration(
-                  icon: Icon(
-                    CupertinoIcons.tag_fill,
-                    color: AppColors.primaryColor,
-                  ),
-                  labelText: 'Quiz Tags',
-                  helperText: "Ex: Sports, Football, Personal",
-                ),
-                onChanged: (text) {
-                  setState(() {
-                    final tags = text.toLowerCase().split(',');
-                    for (int i = 0; i < tags.length; i++) {
-                      if (!tags[i].trim().startsWith('#')) {
-                        tags[i] = '#${tags[i].trim()}';
-                      }
-                    }
-                    quizData.categories = tags;
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Visibility',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: quizTitle,
+                      maxLength: 70,
+                      decoration: const InputDecoration(
+                        icon: Icon(
+                          Icons.title,
+                          color: AppColors.primaryColor,
                         ),
-                        Center(
-                          child: DropdownButton<String>(
-                            icon: const Icon(
-                              CupertinoIcons.globe,
-                              color: AppColors.primaryColor,
-                            ),
-                            value: quizData.visibility ?? 'Public',
-                            onChanged: (value) {
-                              setState(() {
-                                quizData.visibility = value;
-                              });
-                            },
-                            items: <String>['Public', 'Private', 'Draft']
-                                .map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Difficulty',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Center(
-                          child: DropdownButton<String>(
-                            icon: const Icon(
-                              CupertinoIcons.hourglass,
-                              color: AppColors.primaryColor,
-                            ),
-                            value: quizData.difficulty ?? 'Medium',
-                            onChanged: (value) {
-                              setState(() {
-                                quizData.difficulty = value;
-                              });
-                            },
-                            items: <String>[
-                              'Easy',
-                              'Medium',
-                              'Hard',
-                            ].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Timer',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Center(
-                          child: DropdownButton<int>(
-                            icon: const Icon(
-                              CupertinoIcons.timer,
-                              color: AppColors.primaryColor,
-                            ),
-                            value: quizData.timer ?? 999,
-                            onChanged: (value) {
-                              setState(() {
-                                quizData.timer = value;
-                              });
-                            },
-                            items: <int>[20, 40, 60, 120, 240, 999]
-                                .map((int value) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: value == 999
-                                    ? const Text("Unlimited ")
-                                    : Text('$value sec'),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (previewQuestions.isNotEmpty)
-                Center(
-                  child: Container(
-                    // Styling for the timer box
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 2,
+                        labelText: 'Quiz Title',
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 3,
-                          offset: const Offset(0, 2),
+                      onChanged: (text) {
+                        setState(() {
+                          quizData.quizTitle = text;
+                        });
+                      },
+                    ),
+                    TextField(
+                      controller: quizDescription,
+                      maxLines: null,
+                      maxLength: 280,
+                      decoration: const InputDecoration(
+                        icon: Icon(
+                          Icons.description,
+                          color: AppColors.primaryColor,
+                        ),
+                        labelText: 'Quiz Description',
+                      ),
+                      onChanged: (text) {
+                        setState(() {
+                          quizData.quizDescription = text;
+                        });
+                      },
+                    ),
+                    TextField(
+                      controller: quizTags,
+                      maxLength: 30,
+                      decoration: const InputDecoration(
+                        icon: Icon(
+                          CupertinoIcons.tag_fill,
+                          color: AppColors.primaryColor,
+                        ),
+                        labelText: 'Quiz Tags',
+                        helperText: "Ex: Sports, Football, Personal",
+                      ),
+                      onChanged: (text) {
+                        setState(() {
+                          final tags = text.toLowerCase().split(',');
+                          for (int i = 0; i < tags.length; i++) {
+                            if (!tags[i].trim().startsWith('#')) {
+                              tags[i] = '#${tags[i].trim()}';
+                            }
+                          }
+                          quizData.categories = tags;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Visibility',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Center(
+                                child: DropdownButton<String>(
+                                  icon: const Icon(
+                                    CupertinoIcons.globe,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  value: quizData.visibility ?? 'Public',
+                                  onChanged: (value) {
+                                    setState(() {
+                                      quizData.visibility = value;
+                                    });
+                                  },
+                                  items: <String>['Public', 'Private', 'Draft']
+                                      .map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Difficulty',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Center(
+                                child: DropdownButton<String>(
+                                  icon: const Icon(
+                                    CupertinoIcons.hourglass,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  value: quizData.difficulty ?? 'Medium',
+                                  onChanged: (value) {
+                                    setState(() {
+                                      quizData.difficulty = value;
+                                    });
+                                  },
+                                  items: <String>[
+                                    'Easy',
+                                    'Medium',
+                                    'Hard',
+                                  ].map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Timer',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Center(
+                                child: DropdownButton<int>(
+                                  icon: const Icon(
+                                    CupertinoIcons.timer,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  value: quizData.timer ?? 999,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      quizData.timer = value;
+                                    });
+                                  },
+                                  items: <int>[20, 40, 60, 120, 240, 999]
+                                      .map((int value) {
+                                    return DropdownMenuItem<int>(
+                                      value: value,
+                                      child: value == 999
+                                          ? const Text("Unlimited ")
+                                          : Text('$value sec'),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.all(8),
-                    child: Text(
-                      'Total Questions: ${previewQuestions.length}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.activeBlue,
-                      ),
-                    ),
-                  ),
-                ),
-              if (previewQuestions.isNotEmpty)
-                Column(
-                  children: previewQuestions.asMap().entries.map((entry) {
-                    final int index = entry.key;
-                    final Quizzes question = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Card(
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                    if (previewQuestions.isNotEmpty)
+                      Center(
+                        child: Container(
+                          // Styling for the timer box
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.blue,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 3,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            'Total Questions: ${previewQuestions.length}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: CupertinoColors.activeBlue,
+                            ),
+                          ),
                         ),
-                        child: InkWell(
-                          onTap: () {
-                            _showEditQuestionDialog(index);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0, vertical: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                      ),
+                    if (previewQuestions.isNotEmpty)
+                      Column(
+                        children: previewQuestions.asMap().entries.map((entry) {
+                          final int index = entry.key;
+                          final Quizzes question = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: InkWell(
+                                onTap: () {
+                                  _showEditQuestionDialog(index);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12.0, vertical: 12),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        question.questionTitle!,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.deepPurple,
+                                      Flexible(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              question.questionTitle!,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.deepPurple,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              "Choices: ${question.choices?.join(', ')}",
+                                              style: const TextStyle(
+                                                color: Colors.indigo,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "Choices: ${question.choices?.join(', ')}",
-                                        style: const TextStyle(
-                                          color: Colors.indigo,
-                                        ),
+                                      Column(
+                                        children: [
+                                          IconButton(
+                                            onPressed: () {
+                                              _showEditQuestionDialog(index);
+                                            },
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                previewQuestions
+                                                    .remove(question);
+                                              });
+                                            },
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
-                                Column(
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        _showEditQuestionDialog(index);
-                                      },
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          previewQuestions.remove(question);
-                                        });
-                                      },
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
+                  ],
                 ),
-            ],
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }

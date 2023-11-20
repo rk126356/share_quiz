@@ -10,6 +10,7 @@ import 'package:share_quiz/data/quiz-templates/movieBuffQuiz.dart';
 import 'package:share_quiz/data/quiz-templates/myQuestions1.dart';
 import 'package:share_quiz/data/quiz-templates/myTravelPreferencesQuiz.dart';
 import 'package:share_quiz/data/quiz-templates/personalQuiz.dart';
+import 'package:share_quiz/data/quiz-templates/quick_add.dart';
 import 'package:share_quiz/data/quiz-templates/sportsFanaticQuiz.dart';
 import 'package:share_quiz/data/quiz-templates/techGeekTrivia.dart';
 import 'package:share_quiz/screens/create/templates/inside_template_screen.dart';
@@ -23,6 +24,12 @@ class TemplatesScreen extends StatefulWidget {
 
 class _TemplatesScreenState extends State<TemplatesScreen> {
   List<QuizTemplate> templateQuizItems = [
+    QuizTemplate(
+      templateQuizzes: questions,
+      templateQuizTitle: "Cricket WorldCup 2023 Quiz!",
+      templateQuizDescription: "Cricket WorldCup 2023 Quiz!",
+      templateQuizTags: 'cricket, sports',
+    ),
     QuizTemplate(
       templateQuizzes: personalQuiz,
       templateQuizTitle: "Discovering [Your Name]",

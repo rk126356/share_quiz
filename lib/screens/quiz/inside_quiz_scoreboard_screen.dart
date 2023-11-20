@@ -104,12 +104,13 @@ class _InsideQuizScoreBoardScreenState
             );
           },
         );
+
+        setState(() {
+          _isButtonLoading = false;
+          _isLoading = false;
+        });
       }
 
-      setState(() {
-        _isButtonLoading = false;
-        _isLoading = false;
-      });
       return;
     }
 

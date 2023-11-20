@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,6 +7,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
+import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/common/fonts.dart';
 import 'package:share_quiz/controllers/update_share_firebase.dart';
 import 'package:share_quiz/providers/user_provider.dart';
@@ -238,12 +240,12 @@ class _QuizCardItemsState extends State<QuizCardItems> {
             trailing: IconButton(
                 onPressed: () {
                   Share.share(
-                      'Quiz Title: ${widget.quizData.quizTitle}\n\n'
-                      'Description: ${widget.quizData.quizDescription}\n\n'
+                      'Quiz Title: \n${widget.quizData.quizTitle}\n\n'
+                      'Description: \n${widget.quizData.quizDescription}\n\n'
                       'Questions: ${widget.quizData.noOfQuestions}\n\n'
                       'Difficulty: ${widget.quizData.difficulty}\n\n'
                       'Quiz Code: ${widget.quizData.quizID}\n\n'
-                      'Play Now: https://raihansk.com/play/${widget.quizData.quizID}',
+                      'Play Now: https://play.sharequiz.in/code/${widget.quizData.quizID}',
                       subject: 'Check out this awesome Quiz');
                   updateShare(
                       widget.quizData.quizID, widget.quizData.creatorUserID);
@@ -263,9 +265,31 @@ class _QuizCardItemsState extends State<QuizCardItems> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage:
-                        NetworkImage(widget.quizData.creatorImage!),
+                  CachedNetworkImage(
+                    width: 40,
+                    height: 40,
+                    imageUrl: widget.quizData.creatorImage!,
+                    progressIndicatorBuilder:
+                        (context, url, downloadProgress) =>
+                            CircularProgressIndicator(
+                                value: downloadProgress.progress),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                    imageBuilder: (context, imageProvider) => Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primaryColor,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Image(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Column(

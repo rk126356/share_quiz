@@ -27,12 +27,6 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-
-    if (data.userData.username == null || data.userData.username == '') {
-      SystemNavigator.pop();
-    }
-
     return Scaffold(
       backgroundColor: Colors.white10,
       appBar: AppBar(
@@ -69,19 +63,27 @@ class _QuizScreenState extends State<QuizScreen> {
                       },
                     ),
                     SmallCategoryBox(
-                      title: 'Entertainment',
+                      title: 'Space',
                       backgroundColor: Colors.blue,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InsideQuizTagScreen(
+                                    tag: '#space',
+                                  )),
+                        );
+                      },
                     ),
                     SmallCategoryBox(
-                      title: 'JEE Main',
+                      title: 'JEE Mains',
                       backgroundColor: Colors.pink,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const InsideQuizTagScreen(
-                                    tag: '#JEE Main',
+                                    tag: '#jee mains',
                                   )),
                         );
                       },
@@ -100,14 +102,30 @@ class _QuizScreenState extends State<QuizScreen> {
                       },
                     ),
                     SmallCategoryBox(
-                      title: 'Bollywood',
+                      title: 'Sports',
                       backgroundColor: Colors.deepPurple,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InsideQuizTagScreen(
+                                    tag: '#sports',
+                                  )),
+                        );
+                      },
                     ),
                     SmallCategoryBox(
                       title: 'Cricket',
                       backgroundColor: Colors.black,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InsideQuizTagScreen(
+                                    tag: '#cricket',
+                                  )),
+                        );
+                      },
                     ),
                   ],
                 ),

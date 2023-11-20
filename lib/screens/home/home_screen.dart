@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
   late TabController _tabController;
   bool _isLoading = false;
   bool _isForYouTab = true;
-  int forYouTabLength = 2;
+  int forYouTabLength = 19;
   int followingTabLemgth = 19;
 
   List<CreateQuizDataModel> forYouQuizzes = [];
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
           .where('visibility', isEqualTo: 'Public')
           .orderBy('createdAt', descending: true)
           .startAfter([st])
-          .limit(3)
+          .limit(20)
           .get();
     } else {
       String? latCreatedAt = prefs.getString('lastCreatedAt');
@@ -79,14 +79,14 @@ class _HomeScreenState extends State<HomeScreen>
             .where('visibility', isEqualTo: 'Public')
             .orderBy('createdAt', descending: true)
             .startAfter([st])
-            .limit(3)
+            .limit(20)
             .get();
       } else {
         quizCollection = await firestore
             .collection('allQuizzes')
             .orderBy('createdAt', descending: true)
             .where('visibility', isEqualTo: 'Public')
-            .limit(3)
+            .limit(20)
             .get();
       }
     }
@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     createdAt = timestampToString(lastDocument?['createdAt']);
 
-    await prefs.setString('lastCreatedAt', createdAt!);
+    // await prefs.setString('lastCreatedAt', createdAt!);
 
     bool limit = false;
     bool limit2 = false;
@@ -109,22 +109,11 @@ class _HomeScreenState extends State<HomeScreen>
     for (final quizDoc in quizCollection.docs) {
       final quizData = quizDoc.data();
 
-      final userCollection = await firestore
-          .collection('users')
-          .doc(quizData['creatorUserID'])
-          .get();
-
-      final userData = userCollection.data();
-
-      if (kDebugMode) {
-        print(quizData['quizID']);
-      }
-
       final quizItem = CreateQuizDataModel(
         quizID: quizData['quizID'],
-        creatorName: userData?['displayName'],
-        creatorUsername: userData?['username'],
-        creatorImage: userData?['avatarUrl'],
+        creatorName: quizData['creatorName'],
+        creatorUsername: quizData['creatorUsername'],
+        creatorImage: quizData['creatorImage'],
         quizDescription: quizData['quizDescription'],
         quizTitle: quizData['quizTitle'],
         likes: quizData['likes'],
@@ -234,18 +223,11 @@ class _HomeScreenState extends State<HomeScreen>
         for (final quizDoc in quizCollection.docs) {
           final quizData = quizDoc.data();
 
-          final userCollection = await firestore
-              .collection('users')
-              .doc(quizData['creatorUserID'])
-              .get();
-
-          final userData = userCollection.data();
-
           final quizItem = CreateQuizDataModel(
             quizID: quizData['quizID'],
-            creatorName: userData?['displayName'],
-            creatorUsername: userData?['username'],
-            creatorImage: userData?['avatarUrl'],
+            creatorName: quizData['creatorName'],
+            creatorUsername: quizData['creatorUsername'],
+            creatorImage: quizData['creatorImage'],
             quizDescription: quizData['quizDescription'],
             quizTitle: quizData['quizTitle'],
             likes: quizData['likes'],
@@ -314,18 +296,6 @@ class _HomeScreenState extends State<HomeScreen>
         username: userData?['username'],
         email: userData?['email'],
       ));
-
-      if (userData!.containsKey('bio') &&
-          userData['bio'] != null &&
-          userData['bio'] == '') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const CreateProfileScreen(
-                    isEdit: true,
-                  )),
-        );
-      }
     }
 
     if (data.userData.username == null || data.userData.username == '') {
@@ -373,10 +343,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    _tabController.addListener(() {
+    _tabController.addListener(() async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
       if (kDebugMode) {
         print(_tabController.index);
       }
+      final createdAtTab =
+          timestampToString(forYouQuizzes[_tabController.index].createdAt!);
+      await prefs.setString('lastCreatedAt', createdAtTab);
       if (_tabController.index == forYouTabLength && _isForYouTab) {
         setState(() {
           _isReloadQuizForYou = true;
@@ -524,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen>
             setState(() {
               if (_isForYouTab) {
                 fetchForYouQuizzes(true);
-                forYouTabLength = forYouTabLength + 29;
+                forYouTabLength = forYouTabLength + 19;
                 _isReloadQuizForYou = false;
               }
 
@@ -561,7 +535,6 @@ class _HomeScreenState extends State<HomeScreen>
         children: List.generate(
           quizItems.length,
           (index) {
-            // print(index);
             return RotatedBox(
               quarterTurns: -1,
               child: SafeArea(

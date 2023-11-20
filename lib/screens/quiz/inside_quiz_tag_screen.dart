@@ -102,6 +102,8 @@ class _InsideQuizTagScreenState extends State<InsideQuizTagScreen> {
         creatorImage: quizData['creatorImage'],
         creatorName: quizData['creatorName'],
         creatorUserID: quizData['creatorUserID'],
+        creatorUsername: quizData['creatorUsername'],
+        difficulty: quizData['difficulty'],
       );
 
       quizItems.add(quizItem);

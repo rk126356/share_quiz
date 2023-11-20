@@ -4,6 +4,7 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
+import 'package:share_quiz/widgets/shimmer_widget.dart';
 
 class RecommendedQuizTab extends StatefulWidget {
   const RecommendedQuizTab({
@@ -117,7 +118,15 @@ class _RecommendedQuizTabState extends State<RecommendedQuizTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading
-          ? const LoadingWidget()
+          ? const SingleChildScrollView(
+              child: Column(
+                children: [
+                  ShimmerWidget(),
+                  ShimmerWidget(),
+                  ShimmerWidget(),
+                ],
+              ),
+            )
           : Column(
               children: [
                 Expanded(

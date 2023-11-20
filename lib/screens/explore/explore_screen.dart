@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -78,12 +79,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-
-    if (data.userData.username == null || data.userData.username == '') {
-      SystemNavigator.pop();
-    }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
@@ -131,10 +126,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         )),
                               );
                             },
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue,
-                              backgroundImage:
-                                  NetworkImage(entry.value.avatarUrl!),
+                            leading: CachedNetworkImage(
+                              width: 40,
+                              height: 40,
+                              imageUrl: entry.value.avatarUrl!,
+                              progressIndicatorBuilder:
+                                  (context, url, downloadProgress) =>
+                                      CircularProgressIndicator(
+                                          value: downloadProgress.progress),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                              imageBuilder: (context, imageProvider) =>
+                                  Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.textColor,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                child: ClipOval(
+                                  child: Image(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
                             ),
                             title: Text(
                               entry.value.name!,

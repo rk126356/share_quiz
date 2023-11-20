@@ -70,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
           'email': user.email,
           'uid': user.uid,
           'avatarUrl': user.photoURL,
+          'bio': 'No Bio',
           'plan': 'free',
           'username': username,
           'searchFields': username.toLowerCase(),
@@ -105,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context);
+    var data = Provider.of<UserProvider>(context, listen: false);
 
     return Scaffold(
       body: isLoading

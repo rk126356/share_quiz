@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -22,12 +23,6 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var data = Provider.of<UserProvider>(context, listen: false);
-
-    if (data.userData.username == null || data.userData.username == '') {
-      SystemNavigator.pop();
-    }
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -78,19 +73,27 @@ class _ProfileAvatar extends StatelessWidget {
             alignment: Alignment
                 .bottomRight, // Align the edit icon to the bottom right
             children: [
-              Container(
+              CachedNetworkImage(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
+                imageUrl: data.userData.avatarUrl!,
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    CircularProgressIndicator(value: downloadProgress.progress),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2.0,
+                    ),
                   ),
-                ),
-                child: CircleAvatar(
-                  radius: 56,
-                  backgroundImage: NetworkImage(data.userData.avatarUrl ?? ''),
+                  child: ClipOval(
+                    child: Image(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
               CircleAvatar(

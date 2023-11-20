@@ -18,6 +18,23 @@ import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // if (kIsWeb) {
+  //   await Firebase.initializeApp(
+  //       options: const FirebaseOptions(
+  //     // these are variable
+  //     // for each firebase project
+  //     apiKey: "AIzaSyB_9gA4rMApBvS2qAuFBQN2Rgy6Jm3gRas",
+  //     authDomain: "share-quiz.firebaseapp.com",
+  //     projectId: "share-quiz",
+  //     storageBucket: "share-quiz.appspot.com",
+  //     messagingSenderId: "980593065701",
+  //     appId: "1:980593065701:web:05a629332f912b5b4cde0c",
+  //     measurementId: "G-8KVGY2GHXS",
+  //   ));
+  // } else {
+  //   await Firebase.initializeApp();
+  // }
+
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => UserProvider()),
     ChangeNotifierProvider(create: (context) => QuestionsLanguageProvider()),
@@ -85,7 +102,7 @@ class MyApp extends StatelessWidget {
               },
             ),
             GoRoute(
-              path: 'play/:quizCode',
+              path: 'code/:quizCode',
               builder: (BuildContext context, GoRouterState state) {
                 return InsideQuizScreen(
                   quizID: state.pathParameters['quizCode']!,
@@ -95,6 +112,7 @@ class MyApp extends StatelessWidget {
             GoRoute(
               path: 'login',
               builder: (BuildContext context, GoRouterState state) {
+                // return kIsWeb ? const GoogleSignIn() : const LoginScreen();
                 return const LoginScreen();
               },
             ),
@@ -103,7 +121,7 @@ class MyApp extends StatelessWidget {
       ],
     );
 
-    if (!kDebugMode) {
+    if (kDebugMode) {
       return MaterialApp(
         title: 'ShareQuiz',
         theme: ThemeData(

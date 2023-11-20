@@ -118,6 +118,8 @@ class _SearchQuizzesScreenState extends State<SearchQuizzesScreen> {
                         creatorImage: quizData['creatorImage'],
                         creatorName: quizData['creatorName'],
                         creatorUserID: quizData['creatorUserID'],
+                        difficulty: quizData['difficulty'],
+                        creatorUsername: quizData['creatorUsername'],
                       );
                       return QuizCardItems(quizData: quiz);
                     },

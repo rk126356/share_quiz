@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:share_quiz/common/fonts.dart';
@@ -26,7 +27,7 @@ class LeftPanel extends StatefulWidget {
   String topScorerName;
   String topScorerImage;
   final String creatorUserID;
-  final String topScorerUid;
+  String topScorerUid;
   final String quizID;
 
   @override
@@ -34,9 +35,8 @@ class LeftPanel extends StatefulWidget {
 }
 
 class _LeftPanelState extends State<LeftPanel> {
-  get firestore => null;
-
   void fetchTopScorer() async {
+    final firestore = FirebaseFirestore.instance;
     final scoreCollection = await firestore
         .collection('allQuizzes/${widget.quizID}/scoreBoard')
         .orderBy('playerScore', descending: true)
@@ -58,6 +58,7 @@ class _LeftPanelState extends State<LeftPanel> {
     setState(() {
       widget.topScorerName = topScorerData?['displayName'];
       widget.topScorerImage = topScorerData?['avatarUrl'];
+      widget.topScorerUid = topScorerData?['uid'];
     });
   }
 
@@ -135,22 +136,27 @@ class _LeftPanelState extends State<LeftPanel> {
             },
             child: Row(
               children: [
-                Container(
+                CachedNetworkImage(
                   width: 35,
                   height: 35,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2.0,
+                  imageUrl: widget.topScorerImage,
+                  progressIndicatorBuilder: (context, url, downloadProgress) =>
+                      CircularProgressIndicator(
+                          value: downloadProgress.progress),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  imageBuilder: (context, imageProvider) => Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white, // Set the border color
+                        width: 2.0, // Set the border width
+                      ),
                     ),
-                  ),
-                  child: ClipOval(
-                    child: Image.network(
-                      widget.topScorerImage,
-                      fit: BoxFit.cover,
-                      width: 35,
-                      height: 35,
+                    child: ClipOval(
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),

@@ -108,6 +108,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           print('User found');
         }
 
+        String? avatarUrl = pickedImage != null
+            ? await uploadImageToStorage(pickedImage)
+            : userImage;
+
         if (data.userData.username != username.text) {
           // Check if the new username is already taken.
           final userCollection = await firestore
@@ -135,10 +139,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               },
             );
           } else {
-            String? avatarUrl = pickedImage != null
-                ? await uploadImageToStorage(pickedImage)
-                : userImage;
-
             // Update user data.
             await userDoc.update({
               'username': username.text,
@@ -175,10 +175,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             }
           }
         } else {
-          String? avatarUrl = pickedImage != null
-              ? await uploadImageToStorage(pickedImage)
-              : userImage;
-
           await userDoc.update({
             'displayName': fullName.text,
             'bio': bio.text,
@@ -202,7 +198,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           if (widget.isEdit == null) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
             );
           } else {
             Navigator.push(
@@ -211,6 +207,24 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             );
           }
         }
+
+        final quizCollection = await FirebaseFirestore.instance
+            .collection('allQuizzes')
+            .where('creatorUserID', isEqualTo: data.userData.uid)
+            .get();
+
+        for (final quizDoc in quizCollection.docs) {
+          final quizData = quizDoc.data();
+          if (kDebugMode) {
+            print(quizData['creatorName']);
+          }
+          await quizDoc.reference.update({
+            'creatorName': fullName.text,
+            'creatorImage': avatarUrl,
+            'creatorUsername': username.text,
+          });
+        }
+
         data.setIsBioAdded(true);
       } else {
         // Handle the case when the user document does not exist.
@@ -241,7 +255,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   pickImage() async {
     final picker = ImagePicker();
     try {
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final pickedFile =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 30);
       setState(() {
         pickedImage = pickedFile!;
       });
@@ -385,7 +400,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z0-9_]+')),
+                            RegExp(r'[a-zA-Z0-9_ ]+')),
                         LengthLimitingTextInputFormatter(20),
                       ],
                       validator: (value) {

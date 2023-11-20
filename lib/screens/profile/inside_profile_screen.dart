@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +15,7 @@ import 'package:share_quiz/screens/profile/followers_screen.dart';
 import 'package:share_quiz/screens/profile/followings_screen.dart';
 import 'package:share_quiz/screens/profile/my_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/user_quizzes_screen.dart';
+import 'package:share_quiz/utils/launch_url.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/quiz_card_widget.dart';
 
@@ -166,7 +168,7 @@ class _InsideProfileScreenState extends State<InsideProfileScreen> {
                   : IconButton(
                       icon: const Icon(CupertinoIcons.info),
                       onPressed: () {
-                        // Add your report functionality here
+                        tryLaunchUrl('https://sharequiz.in/contact-us/');
                       },
                     ),
             ],
@@ -339,7 +341,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
     var data = Provider.of<UserProvider>(context, listen: false);
 
     if (_isChecking) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -361,19 +363,28 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
               alignment: Alignment
                   .bottomRight, // Align the edit icon to the bottom right
               children: [
-                Container(
+                CachedNetworkImage(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 4,
+                  imageUrl: widget.user.avatarUrl!,
+                  progressIndicatorBuilder: (context, url, downloadProgress) =>
+                      CircularProgressIndicator(
+                          value: downloadProgress.progress),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  imageBuilder: (context, imageProvider) => Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
                     ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 56,
-                    backgroundImage: NetworkImage(widget.user.avatarUrl!),
+                    child: ClipOval(
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
               ],

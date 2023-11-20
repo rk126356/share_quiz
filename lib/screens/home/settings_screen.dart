@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:share_quiz/screens/profile/history/my_disliked_quizzes_screen.da
 import 'package:share_quiz/screens/profile/history/my_likes_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/history/my_played_quizzes_screen.dart';
 import 'package:share_quiz/screens/profile/history/my_shared_quizzes.dart';
+import 'package:share_quiz/utils/launch_url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -37,12 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.primaryColor,
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyDislikedQuizzesScreen(),
-                ),
-              );
+              tryLaunchUrl('https://sharequiz.in/');
             },
           ),
           ListTile(
@@ -54,12 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.primaryColor,
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyDislikedQuizzesScreen(),
-                ),
-              );
+              tryLaunchUrl('https://sharequiz.in/contact-us/');
             },
           ),
           ListTile(
@@ -71,12 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.primaryColor,
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyPlayedQuizzesScreen(),
-                ),
-              );
+              tryLaunchUrl('https://sharequiz.in/terms-and-conditions/');
             },
           ),
           ListTile(
@@ -88,12 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.primaryColor,
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MySharedQuizzesScreen(),
-                ),
-              );
+              tryLaunchUrl('https://sharequiz.in/privacy-policy/');
             },
           ),
           ListTile(
@@ -105,12 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.primaryColor,
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyLikedQuizzesScreen(),
-                ),
-              );
+              tryLaunchUrl('https://sharequiz.in/delete-your-account/');
             },
           ),
           ListTile(
@@ -126,9 +103,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await SharedPreferences.getInstance();
               await preferences.clear();
               await GoogleSignIn().signOut();
-              FirebaseAuth.instance.signOut();
-              // SystemNavigator.pop();
-              context.go('/');
+              await FirebaseAuth.instance.signOut();
+              if (!kIsWeb && !kDebugMode) {
+                SystemNavigator.pop();
+              } else {
+                context.go('/');
+              }
             },
           ),
         ],

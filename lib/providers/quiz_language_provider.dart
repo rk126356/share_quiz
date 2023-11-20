@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestionsLanguageProvider with ChangeNotifier {
-  String _language = "en";
-  String _languageName = "English";
+  String _language = "original";
+  String _languageName = "None";
   bool _reload = false;
 
   QuestionsLanguageProvider() {

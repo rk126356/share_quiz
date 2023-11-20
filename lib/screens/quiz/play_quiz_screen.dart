@@ -39,7 +39,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   bool _isLoading = false;
   bool _isCorrect = false;
   bool _isWrong = false;
-  bool hasInternet = false;
+  bool hasInternet = true;
   int _selectedChoice = 100;
   bool _isLoadingAns = false;
   late String _scoreId;
@@ -55,7 +55,6 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
     if (widget.quizData.timer != 999) {
       startTimer();
     }
-    updatePlaysNow();
   }
 
   Future<void> checkInternetConnection() async {
@@ -132,6 +131,7 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
   }
 
   void checkAnswer(int selectedChoice) {
+    checkInternetConnection();
     setState(() {
       _isLoadingAns = true;
       _selectedChoice = selectedChoice;
@@ -187,6 +187,9 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
       });
     }
     updateScore();
+    if (currentQuestionIndex == 0) {
+      updatePlaysNow();
+    }
   }
 
   void startTimer() {
@@ -279,117 +282,135 @@ class _PlayQuizScreenState extends State<PlayQuizScreen> {
         backgroundColor: AppColors.primaryColor,
         title: const Text('Play Quiz'),
       ),
-      body: _isLoading
-          ? const LoadingWidget()
-          : Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [CupertinoColors.activeBlue, Colors.blue],
-                ),
+      body: !hasInternet
+          ? Center(
+              child: Column(
+                children: [
+                  const Text(
+                      'No internet connection available, please check your network settings.'),
+                  ElevatedButton(
+                    onPressed: () {
+                      checkInternetConnection();
+                    },
+                    child: const Text('Try again!'),
+                  )
+                ],
               ),
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        QuestionNameBox(
-                          totalQuestions: widget.quizData.noOfQuestions!,
-                          currentIndex: currentQuestionIndex + 1,
-                          correct: score,
-                          name: widget.quizData.quizzes![currentQuestionIndex]
-                              .questionTitle!,
-                        ),
-                        if (widget.quizData.timer != 999)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15.0),
-                            child: Container(
-                              width: widget.quizData.timer == 999 ? 210 : 170,
-                              padding: const EdgeInsets.all(16.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: widget.quizData.timer == 999
-                                      ? Colors.blue[300]!
-                                      : Colors.red[300]!,
-                                  width: 5.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Icon(
-                                    Icons.timer,
-                                    size: 22,
-                                    color: widget.quizData.timer == 999
-                                        ? Colors.blue
-                                        : Colors.red,
-                                  ),
-                                  Text(
-                                    widget.quizData.timer == 999
-                                        ? 'Unlimited Time'
-                                        : '${secondsRemaining.toString()} seconds',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+            )
+          : _isLoading
+              ? const LoadingWidget()
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [CupertinoColors.activeBlue, Colors.blue],
+                    ),
+                  ),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(18.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            QuestionNameBox(
+                              totalQuestions: widget.quizData.noOfQuestions!,
+                              currentIndex: currentQuestionIndex + 1,
+                              correct: score,
+                              name: widget
+                                  .quizData
+                                  .quizzes![currentQuestionIndex]
+                                  .questionTitle!,
+                            ),
+                            if (widget.quizData.timer != 999)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15.0),
+                                child: Container(
+                                  width:
+                                      widget.quizData.timer == 999 ? 210 : 170,
+                                  padding: const EdgeInsets.all(16.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 3,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                    border: Border.all(
                                       color: widget.quizData.timer == 999
-                                          ? Colors.blue
-                                          : Colors.red,
+                                          ? Colors.blue[300]!
+                                          : Colors.red[300]!,
+                                      width: 5.0,
                                     ),
                                   ),
-                                ],
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Icon(
+                                        Icons.timer,
+                                        size: 22,
+                                        color: widget.quizData.timer == 999
+                                            ? Colors.blue
+                                            : Colors.red,
+                                      ),
+                                      Text(
+                                        widget.quizData.timer == 999
+                                            ? 'Unlimited Time'
+                                            : '${secondsRemaining.toString()} seconds',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: widget.quizData.timer == 999
+                                              ? Colors.blue
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
+                            const SizedBox(
+                              height: 10,
                             ),
-                          ),
-                        const SizedBox(
-                          height: 10,
+                            Column(
+                              children: widget.quizData
+                                  .quizzes![currentQuestionIndex].choices!
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final index = entry.key;
+                                final choice = entry.value;
+                                return InkWell(
+                                  onTap: () {
+                                    if (!_isLoadingAns) {
+                                      checkAnswer(index);
+                                    }
+                                  },
+                                  child: ChoiceButton(
+                                    isWrong: _isWrong,
+                                    isCorrect: _isCorrect,
+                                    index: index + 1,
+                                    text: choice,
+                                    selectedChoice: _selectedChoice + 1,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                          ],
                         ),
-                        Column(
-                          children: widget
-                              .quizData.quizzes![currentQuestionIndex].choices!
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                            final index = entry.key;
-                            final choice = entry.value;
-                            return InkWell(
-                              onTap: () {
-                                if (!_isLoadingAns) {
-                                  checkAnswer(index);
-                                }
-                              },
-                              child: ChoiceButton(
-                                isWrong: _isWrong,
-                                isCorrect: _isCorrect,
-                                index: index + 1,
-                                text: choice,
-                                selectedChoice: _selectedChoice + 1,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
     );
   }
 }

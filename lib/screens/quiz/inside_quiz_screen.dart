@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
@@ -18,6 +19,7 @@ import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_scoreboard_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/screens/quiz/play_quiz_screen.dart';
+import 'package:share_quiz/utils/launch_url.dart';
 import 'package:share_quiz/widgets/avatar_url_widget.dart';
 import 'package:share_quiz/widgets/loading_widget.dart';
 import 'package:share_quiz/widgets/small_row_buttons_widget.dart';
@@ -43,12 +45,21 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   bool _isLoading = false;
   bool _shouldPlay = false;
   bool _isQuizDataFound = false;
+  bool _isLoggedIn = true;
 
   late DocumentSnapshot<Map<String, dynamic>> _quizCollection;
 
   CreateQuizDataModel quizData = CreateQuizDataModel();
 
   void fetchQuizDetails() async {
+    var user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isLoggedIn = false;
+      });
+
+      return;
+    }
     if (kDebugMode) {
       print("Fetching Quiz Details");
     }
@@ -86,7 +97,8 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
         String userName = 'Not found';
         String userImage = '';
         String topScorerName = 'No One Yet!';
-        String topScorerImage = '';
+        String topScorerImage =
+            'https://firebasestorage.googleapis.com/v0/b/share-quiz.appspot.com/o/myfiles%2F186-1869910_ic-question-mark-roblox-question-mark-avatar.png?alt=media&token=272f2179-f476-44a3-9a6a-10dfe85f64cd';
 
         try {
           final userDoc = FirebaseFirestore.instance
@@ -377,6 +389,31 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
   Widget build(BuildContext context) {
     var data = Provider.of<UserProvider>(context, listen: false);
 
+    if (!_isLoggedIn) {
+      return Scaffold(
+          appBar: AppBar(
+            title: const Text('Error...'),
+            backgroundColor: AppColors.primaryColor,
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("You have to login first."),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.go('/');
+                  },
+                  child: const Text('Login'),
+                )
+              ],
+            ),
+          ));
+    }
+
     if (_isLoading && _isQuizDataFound) {
       return Scaffold(
         appBar: AppBar(
@@ -390,11 +427,11 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
     if (!_isQuizDataFound && !_isLoading) {
       return Scaffold(
           appBar: AppBar(
-            title: const Text('Quiz data not found'),
+            title: const Text('Quiz Not Found'),
             backgroundColor: AppColors.primaryColor,
           ),
           body: const Center(
-            child: Text("Quiz is deleted or wrong Quiz ID"),
+            child: Text("Quiz is deleted or wrong Quiz Code."),
           ));
     }
 
@@ -414,12 +451,12 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
             IconButton(
                 onPressed: () {
                   Share.share(
-                      'Quiz Title: ${quizData.quizTitle}\n\n'
-                      'Description: ${quizData.quizDescription}\n\n'
+                      'Quiz Title: \n${quizData.quizTitle}\n\n'
+                      'Description: \n${quizData.quizDescription}\n\n'
                       'Questions: ${quizData.noOfQuestions}\n\n'
                       'Difficulty: ${quizData.difficulty}\n\n'
                       'Quiz Code: ${quizData.quizID}\n\n'
-                      'Play Now: https://raihansk.com/play/${quizData.quizID}',
+                      'Play Now: https://play.sharequiz.in/code/${quizData.quizID}',
                       subject: 'Check out this awesome Quiz');
                   updateShare(quizData.quizID, quizData.creatorUserID);
                 },
@@ -668,12 +705,12 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                   SmallRowButton(
                     onTap: () {
                       Share.share(
-                          'Quiz Title: ${quizData.quizTitle}\n\n'
-                          'Description: ${quizData.quizDescription}\n\n'
+                          'Quiz Title: \n${quizData.quizTitle}\n\n'
+                          'Description: \n${quizData.quizDescription}\n\n'
                           'Questions: ${quizData.noOfQuestions}\n\n'
                           'Difficulty: ${quizData.difficulty}\n\n'
                           'Quiz Code: ${quizData.quizID}\n\n'
-                          'Play Now: https://raihansk.com/play/${quizData.quizID}',
+                          'Play Now: https://play.sharequiz.in/code/${quizData.quizID}',
                           subject: 'Check out this awesome Quiz');
 
                       updateShare(quizData.quizID, quizData.creatorUserID);
@@ -684,22 +721,24 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                       color: Colors.white,
                     ),
                   ),
+                  // const SizedBox(
+                  //   width: 10,
+                  // ),
+                  // SmallRowButton(
+                  //   onTap: () {},
+                  //   title: 'Releated',
+                  //   icon: const Icon(
+                  //     CupertinoIcons.list_dash,
+                  //     color: Colors.white,
+                  //   ),
+                  // ),
                   const SizedBox(
                     width: 10,
                   ),
                   SmallRowButton(
-                    onTap: () {},
-                    title: 'Releated',
-                    icon: const Icon(
-                      CupertinoIcons.list_dash,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  SmallRowButton(
-                    onTap: () {},
+                    onTap: () {
+                      tryLaunchUrl('https://sharequiz.in/contact-us/');
+                    },
                     title: 'Report',
                     icon: const Icon(
                       CupertinoIcons.info,

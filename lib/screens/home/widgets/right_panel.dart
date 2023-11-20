@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -259,12 +260,12 @@ class _RightPanelState extends State<RightPanel> {
                   InkWell(
                     onTap: () {
                       Share.share(
-                          'Quiz Title: ${widget.quizTitle}\n\n'
-                          'Description: ${widget.quizDescription}\n\n'
+                          'Quiz Title: \n${widget.quizTitle}\n\n'
+                          'Description: \n${widget.quizDescription}\n\n'
                           'Questions: ${widget.noOfQuestions}\n\n'
                           'Difficulty: ${widget.difficulty}\n\n'
                           'Quiz Code: ${widget.quizID}\n\n'
-                          'Play Now: https://raihansk.com/play/${widget.quizID}',
+                          'Play Now: https://play.sharequiz.in/code/${widget.quizID}',
                           subject: 'Check out this awesome Quiz');
                       updateShare(widget.quizID, widget.creatorUserID);
                     },
@@ -347,14 +348,28 @@ class _RightPanelState extends State<RightPanel> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
+          CachedNetworkImage(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
+            imageUrl: profileImg,
+            progressIndicatorBuilder: (context, url, downloadProgress) =>
+                CircularProgressIndicator(value: downloadProgress.progress),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+            imageBuilder: (context, imageProvider) => Container(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: white),
-                image: DecorationImage(
-                    image: NetworkImage(profileImg), fit: BoxFit.cover)),
+                border: Border.all(
+                  color: primary,
+                  width: 2.0,
+                ),
+              ),
+              child: ClipOval(
+                child: Image(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           ),
           Positioned(
               left: 12,

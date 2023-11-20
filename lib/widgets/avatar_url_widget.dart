@@ -1,17 +1,31 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 Widget avatarTile(String title, String url, String name, onTap) {
   return ListTile(
     onTap: onTap,
-    leading: CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.blue, // Change the background color as needed
-      child: CircleAvatar(
-        radius: 18, // Adjust the radius to make it circular
-        backgroundImage: NetworkImage(url.length > 1
-            ? url
-            : 'https://www.zooniverse.org/assets/simple-avatar.png'),
+    leading: CachedNetworkImage(
+      width: 45,
+      height: 45,
+      imageUrl: url,
+      progressIndicatorBuilder: (context, url, downloadProgress) =>
+          CircularProgressIndicator(value: downloadProgress.progress),
+      errorWidget: (context, url, error) => const Icon(Icons.error),
+      imageBuilder: (context, imageProvider) => Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.blue,
+            width: 2.0,
+          ),
+        ),
+        child: ClipOval(
+          child: Image(
+            image: imageProvider,
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
     ),
     title: Text(
