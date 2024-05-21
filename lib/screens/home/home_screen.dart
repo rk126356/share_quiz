@@ -652,19 +652,19 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
     }
 
     String quizDescription = widget.quizDescription!;
-    List<String> lines = quizDescription.split('\n');
+    // List<String> lines = quizDescription.split('\n');
 
-    if (lines.length > 1) {
-      if (lines[0].length > 200) {
-        quizDescription = lines[0];
-      } else if (lines[0].length > 100 ||
-          lines[1].length > 100 ||
-          (lines.length > 1 && lines[1].length > 100)) {
-        quizDescription = '${lines.take(2).join('\n')}...';
-      } else if (lines.length > 6) {
-        quizDescription = '${lines.take(5).join('\n')}...';
-      }
-    }
+    // if (lines.length > 1) {
+    //   if (lines[0].length > 200) {
+    //     quizDescription = lines[0];
+    //   } else if (lines[0].length > 100 ||
+    //       lines[1].length > 100 ||
+    //       (lines.length > 1 && lines[1].length > 100)) {
+    //     quizDescription = '${lines.take(2).join('\n')}...';
+    //   } else if (lines.length > 6) {
+    //     quizDescription = '${lines.take(5).join('\n')}...';
+    //   }
+    // }
 
     return SizedBox(
       width: widget.size.width,
@@ -679,134 +679,116 @@ class _QuizTikTokItemsState extends State<QuizTikTokItems>
                   Card(
                     color: predefinedColors[
                         Random().nextInt(predefinedColors.length)],
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 50),
-                              child: ListTile(
-                                onTap: () {
+                        Padding(
+                          padding: const EdgeInsets.only(right: 52),
+                          child: ListTile(
+                            title: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                widget.quizTitle!,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            subtitle: SizedBox(
+                              height:
+                                  80, // Set a fixed height for the description
+                              child: SingleChildScrollView(
+                                child: Text(
+                                  quizDescription!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: ButtonBar(
+                            alignment: MainAxisAlignment.start,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => InsideQuizScreen(
-                                              quizID: widget.quizID!,
-                                            )),
+                                      builder: (context) => InsideQuizScreen(
+                                        quizID: widget.quizID!,
+                                      ),
+                                    ),
                                   );
                                 },
-                                title: Text(
-                                  widget.quizTitle!,
-                                  textAlign: TextAlign.left,
-                                  style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
+                                icon: const Icon(Icons.info_outline, size: 24),
+                                label: const Text(
+                                  "More Info",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                  ),
                                 ),
-                                subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: Text(
-                                      quizDescription!,
-                                      textAlign: TextAlign.left,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white70,
-                                      ),
-                                    )),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: ButtonBar(
-                                alignment: MainAxisAlignment.start,
-                                children: [
-                                  OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                InsideQuizScreen(
-                                                  quizID: widget.quizID!,
-                                                )),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.info_outline,
-                                        size: 24),
-                                    label: const Text(
-                                      "More Info",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 8),
-                                      side: const BorderSide(
-                                          color: Colors
-                                              .white), // Set the border color to white
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            8.0), // Adjust the border radius as needed
-                                      ),
-                                    ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  side: const BorderSide(color: Colors.white),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: ButtonBar(
-                                alignment: MainAxisAlignment.start,
-                                children: [
-                                  OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                InsideQuizScreen(
-                                                  isQuickPlay: true,
-                                                  quizID: widget.quizID!,
-                                                )),
-                                      );
-                                    },
-                                    icon:
-                                        const Icon(Icons.play_arrow, size: 24),
-                                    label: const Text(
-                                      "Quick Play",
-                                      style: TextStyle(
-                                        fontSize: 20,
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: ButtonBar(
+                            alignment: MainAxisAlignment.start,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => InsideQuizScreen(
+                                        isQuickPlay: true,
+                                        quizID: widget.quizID!,
                                       ),
                                     ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 8),
-                                      side: const BorderSide(
-                                          color: Colors
-                                              .white), // Set the border color to white
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            8.0), // Adjust the border radius as needed
-                                      ),
-                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.play_arrow, size: 24),
+                                label: const Text(
+                                  "Quick Play",
+                                  style: TextStyle(
+                                    fontSize: 20,
                                   ),
-                                ],
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  side: const BorderSide(color: Colors.white),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                ),
                               ),
-                            ),
-                            quizDescriptionSizedBox(widget.quizDescription),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               )),
           SizedBox(

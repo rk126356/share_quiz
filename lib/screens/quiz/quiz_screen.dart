@@ -1,10 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:share_quiz/Models/quiz_data_class.dart';
-import 'package:share_quiz/providers/user_provider.dart';
-import 'package:share_quiz/screens/profile/create_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/all_tags_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
 import 'package:share_quiz/screens/quiz/tabs/all_quiz_tab.dart';
@@ -63,27 +58,27 @@ class _QuizScreenState extends State<QuizScreen> {
                       },
                     ),
                     SmallCategoryBox(
-                      title: 'Space',
+                      title: 'Current Affairs',
                       backgroundColor: Colors.blue,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const InsideQuizTagScreen(
-                                    tag: '#space',
+                                    tag: '#current affairs',
                                   )),
                         );
                       },
                     ),
                     SmallCategoryBox(
-                      title: 'JEE Mains',
+                      title: 'General Knowledge',
                       backgroundColor: Colors.pink,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const InsideQuizTagScreen(
-                                    tag: '#jee mains',
+                                    tag: '#general knowledge',
                                   )),
                         );
                       },

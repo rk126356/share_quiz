@@ -99,27 +99,30 @@ class _LeftPanelState extends State<LeftPanel> {
             style: const TextStyle(color: white, fontSize: 12),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: widget.categories!.asMap().entries.map((entry) {
-              final tagName = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => InsideQuizTagScreen(
-                                  tag: tagName,
-                                )),
-                      );
-                    },
-                    child: Text(
-                      tagName,
-                      style: AppFonts.link.copyWith(color: Colors.white),
-                    )),
-              );
-            }).toList(),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: widget.categories!.asMap().entries.map((entry) {
+                final tagName = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => InsideQuizTagScreen(
+                                    tag: tagName,
+                                  )),
+                        );
+                      },
+                      child: Text(
+                        tagName,
+                        style: AppFonts.link.copyWith(color: Colors.white),
+                      )),
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 10),
           InkWell(

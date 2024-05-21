@@ -2,68 +2,72 @@ import 'package:share_quiz/Models/create_quiz_data_model.dart';
 
 List<Quizzes> questions = [
   Quizzes(
-    questionTitle: "Who won the Cricket World Cup 2023?",
-    choices: ["India", "Australia", "South Africa", "England"],
-    correctAns: '1',
+    questionTitle: "The code in The Matrix comes from what food recipes?",
+    choices: ["Sushi", "Dumplings", "Stir-fry", "Pad thai"],
+    correctAns: '0',
   ),
   Quizzes(
     questionTitle:
-        "Where was the final match of the Cricket World Cup 2023 held?",
+        "What’s the name of Meatloaf’s character in The Rocky Horror Picture Show?",
+    choices: ["Henry", "Eddie", "Chuck", "Al"],
+    correctAns: '1',
+  ),
+  Quizzes(
+    questionTitle: "Who actually drew the sketch of Rose in Titanic?",
     choices: [
-      "Mumbai, India",
-      "Sydney, Australia",
-      "Ahmedabad, India",
-      "London, England"
+      "Leonardo DiCaprio",
+      "Billy Zane",
+      "James Cameron",
+      "Kathy Bates"
     ],
     correctAns: '2',
   ),
   Quizzes(
-    questionTitle:
-        "Who was the player of the match in the final of the Cricket World Cup 2023?",
-    choices: ["Virat Kohli", "Rohit Sharma", "Travis Head", "Pat Cummins"],
+    questionTitle: "Who voices Joy in Pixar’s Inside Out?",
+    choices: ["Tina Fey", "Kathryn Hahn", "Ellen DeGeneres", "Amy Poehler"],
+    correctAns: '3',
+  ),
+  Quizzes(
+    questionTitle: "Where were The Lord of the Rings movies filmed?",
+    choices: ["Ireland", "Iceland", "New Zealand", "Australia"],
     correctAns: '2',
   ),
   Quizzes(
-    questionTitle: "How many teams participated in the Cricket World Cup 2023?",
-    choices: ["8", "10", "12", "14"],
+    questionTitle:
+        "Which country does Forrest Gump travel to as part of the All-American Ping-Pong Team?",
+    choices: ["Vietnam", "China", "Sweden", "France"],
+    correctAns: '1',
+  ),
+  Quizzes(
+    questionTitle: "Which famous Pulp Fiction scene was filmed backward?",
+    choices: [
+      "Vincent and Mia’s dance scene",
+      "Mia’s overdose scene",
+      "The “royale with cheese” scene",
+      "The Ezekiel 25:17 scene"
+    ],
     correctAns: '1',
   ),
   Quizzes(
     questionTitle:
-        "Which team scored the highest total in a single match during the Cricket World Cup 2023?",
-    choices: ["India", "Australia", "South Africa", "England"],
+        "Which actor was in the following movies: The Outsiders, Wayne’s World and Tommy Boy?",
+    choices: ["Tom Cruise", "Matt Dillon", "Rob Lowe", "C. Thomas Howell"],
     correctAns: '2',
   ),
   Quizzes(
-    questionTitle: "Who took the most wickets in the Cricket World Cup 2023?",
-    choices: ["Jasprit Bumrah", "Adam Zampa", "Mohammed Shami", "Pat Cummins"],
-    correctAns: '2',
-  ),
-  Quizzes(
-    questionTitle:
-        "Which team hit the most sixes in the Cricket World Cup 2023?",
-    choices: ["India", "Australia", "South Africa", "England"],
-    correctAns: '2',
-  ),
-  Quizzes(
-    questionTitle:
-        "Who was the captain of the Australian team in the Cricket World Cup 2023?",
-    choices: ["Steve Smith", "David Warner", "Pat Cummins", "Aaron Finch"],
-    correctAns: '2',
-  ),
-  Quizzes(
-    questionTitle: "Who was the runner-up team in the Cricket World Cup 2023?",
-    choices: ["India", "Australia", "South Africa", "England"],
+    questionTitle: "Who was the first Black person to win an Oscar?",
+    choices: [
+      "Hattie McDaniel",
+      "Sidney Poitier",
+      "Dorothy Dandridge",
+      "James Earl Jones"
+    ],
     correctAns: '0',
   ),
   Quizzes(
-    questionTitle: "Who hit the fastest century in the Cricket World Cup 2023?",
-    choices: ["Virat Kohli", "Rohit Sharma", "Glenn Maxwell", "David Warner"],
-    correctAns: '2',
-  ),
-  Quizzes(
-    questionTitle: "Who was the youngest player in the Cricket World Cup 2023?",
-    choices: ["Prithvi Shaw", "Shubman Gill", "Noor Ahmad", "Rashid Khan"],
-    correctAns: '2',
+    questionTitle:
+        "Which is not the name of a child selected to tour the Wonka factory in Willy Wonka and the Chocolate Factory?",
+    choices: ["Billy Warp", "Veruca Salt", "Mike Teavee", "Charlie Bucket"],
+    correctAns: '0',
   ),
 ];

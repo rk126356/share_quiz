@@ -14,6 +14,7 @@ import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/profile/inside_profile_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_screen.dart';
 import 'package:share_quiz/screens/quiz/inside_quiz_tag_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class QuizCardItems extends StatefulWidget {
   final CreateQuizDataModel quizData;
@@ -171,10 +172,32 @@ class _QuizCardItemsState extends State<QuizCardItems> {
     });
   }
 
+  bool _isAvatarLoading = false;
+
+  void updateUserData() async {
+    setState(() {
+      _isAvatarLoading = true;
+    });
+    final userDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.quizData.creatorUserID);
+    final userDocSnapshot = await userDoc.get();
+
+    if (userDocSnapshot.exists) {
+      final userData = userDocSnapshot.data();
+      setState(() {
+        widget.quizData.creatorImage = userData?['avatarUrl'];
+        widget.quizData.creatorName = userData?['displayName'];
+        _isAvatarLoading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    updateUserData();
     checkIfQuizIsLiked();
     checkIfQuizIsDisliked();
   }
@@ -252,96 +275,135 @@ class _QuizCardItemsState extends State<QuizCardItems> {
                 },
                 icon: const Icon(CupertinoIcons.arrowshape_turn_up_right)),
           ),
-          InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => InsideProfileScreen(
-                  userId: widget.quizData.creatorUserID!,
+          if (_isAvatarLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 16,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 80,
+                          height: 12,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              child: Row(
-                children: [
-                  CachedNetworkImage(
-                    width: 40,
-                    height: 40,
-                    imageUrl: widget.quizData.creatorImage!,
-                    progressIndicatorBuilder:
-                        (context, url, downloadProgress) =>
-                            CircularProgressIndicator(
-                                value: downloadProgress.progress),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                    imageBuilder: (context, imageProvider) => Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primaryColor,
-                          width: 1.0,
+          if (!_isAvatarLoading)
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InsideProfileScreen(
+                    userId: widget.quizData.creatorUserID!,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                child: Row(
+                  children: [
+                    CachedNetworkImage(
+                      width: 40,
+                      height: 40,
+                      imageUrl: widget.quizData.creatorImage!,
+                      progressIndicatorBuilder:
+                          (context, url, downloadProgress) =>
+                              CircularProgressIndicator(
+                                  value: downloadProgress.progress),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primaryColor,
+                            width: 1.0,
+                          ),
                         ),
-                      ),
-                      child: ClipOval(
-                        child: Image(
-                          image: imageProvider,
-                          fit: BoxFit.cover,
+                        child: ClipOval(
+                          child: Image(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.quizData.creatorName!,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        '@${widget.quizData.creatorUsername!}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          widget.quizData.creatorName!,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          '@${widget.quizData.creatorUsername!}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                // const Icon(
-                //   CupertinoIcons.number,
-                //   color: CupertinoColors.activeBlue,
-                //   size: 20,
-                // ),
-                // const SizedBox(width: 8),
-                Row(
-                  children:
-                      widget.quizData.categories!.asMap().entries.map((entry) {
-                    final tagName = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => InsideQuizTagScreen(
-                                        tag: tagName,
-                                      )),
-                            );
-                          },
-                          child: Text(
-                            tagName,
-                            style: AppFonts.link,
-                          )),
-                    );
-                  }).toList(),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: widget.quizData.categories!
+                        .asMap()
+                        .entries
+                        .map((entry) {
+                      final tagName = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => InsideQuizTagScreen(
+                                          tag: tagName,
+                                        )),
+                              );
+                            },
+                            child: Text(
+                              tagName,
+                              style: AppFonts.link,
+                            )),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ],
             ),

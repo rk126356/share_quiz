@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_quiz/admin/modify_quizzes.dart';
 import 'package:share_quiz/common/colors.dart';
 import 'package:share_quiz/providers/user_provider.dart';
 import 'package:share_quiz/screens/home/settings_screen.dart';
@@ -371,6 +372,26 @@ class _QuickLinksState extends State<_QuickLinks> {
             );
           },
         ),
+        if (kDebugMode)
+          ListTile(
+            leading: const Icon(CupertinoIcons.exclamationmark,
+                color: AppColors.primaryColor),
+            title: const Text("Modify Quizzes"),
+            trailing: const Icon(
+              CupertinoIcons.forward,
+              color: AppColors.primaryColor,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ModifyQuizzesScreen(
+                    initialIndex: 0,
+                  ),
+                ),
+              );
+            },
+          ),
         if (kDebugMode)
           ListTile(
             leading: const Icon(CupertinoIcons.exclamationmark,

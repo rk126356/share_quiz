@@ -26,9 +26,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   List<QuizTemplate> templateQuizItems = [
     QuizTemplate(
       templateQuizzes: questions,
-      templateQuizTitle: "Cricket WorldCup 2023 Quiz!",
-      templateQuizDescription: "Cricket WorldCup 2023 Quiz!",
-      templateQuizTags: 'cricket, sports',
+      templateQuizTitle: "The Ultimate Movie Buff Challenge",
+      templateQuizDescription: "10 quiz questions about Movies",
+      templateQuizTags: 'Movie, Hollywood',
     ),
     QuizTemplate(
       templateQuizzes: personalQuiz,

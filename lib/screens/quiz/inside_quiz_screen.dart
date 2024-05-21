@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:share_quiz/Models/create_quiz_data_model.dart';
@@ -146,7 +147,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           quizDescription: quizDataMap?['quizDescription'],
           quizTitle: quizDataMap?['quizTitle'],
           likes: quizDataMap?['likes'],
-          disLikes: quizDataMap?['DisLikes'],
+          disLikes: quizDataMap?['disLikes'],
           views: updatedViews,
           taken: quizDataMap?['taken'],
           wins: quizDataMap?['wins'],
@@ -161,6 +162,7 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
           visibility: quizDataMap?['visibility'],
           creatorUserID: quizDataMap?['creatorUserID'],
           difficulty: quizDataMap?['difficulty'],
+          createdAt: quizDataMap?['createdAt'],
           quizzes: quizzesList.map((quizMap) {
             return Quizzes(
               questionTitle: quizMap['questionTitle'],
@@ -799,28 +801,33 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                         color: Colors.grey,
                       ),
                     ),
-                    subtitle: Row(
-                      children:
-                          quizData.categories!.asMap().entries.map((entry) {
-                        final tagName = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: InkWell(
+                    subtitle: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children:
+                            quizData.categories!.asMap().entries.map((entry) {
+                          final tagName = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: InkWell(
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => InsideQuizTagScreen(
-                                            tag: tagName,
-                                          )),
+                                    builder: (context) => InsideQuizTagScreen(
+                                      tag: tagName,
+                                    ),
+                                  ),
                                 );
                               },
                               child: Text(
                                 tagName,
                                 style: AppFonts.link,
-                              )),
-                        );
-                      }).toList(),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                   statTile('Difficulty', CupertinoIcons.lightbulb,
@@ -845,6 +852,15 @@ class _InsideQuizScreenState extends State<InsideQuizScreen> {
                       () {}),
                   statTile('Shares', CupertinoIcons.share,
                       quizData.shares.toString(), () {}),
+                  statTile(
+                    'Date',
+                    CupertinoIcons.time,
+                    quizData.createdAt?.toDate() != null
+                        ? DateFormat('yyyy-MM-dd')
+                            .format(quizData.createdAt!.toDate())
+                        : 'N/A', // Provide a default value if the timestamp is null
+                    () {},
+                  ),
                 ],
               ),
             ),

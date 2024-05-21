@@ -133,26 +133,24 @@ class _MyQuizCardItemsState extends State<MyQuizCardItems> {
                 onPressed: widget.onDelete,
                 icon: const Icon(CupertinoIcons.delete)),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(
-                  CupertinoIcons.tag,
-                  color: CupertinoColors.activeBlue,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  widget.quizData.categories!.isNotEmpty
-                      ? 'Tags: ${widget.quizData.categories?.join(', ')}'
-                      : 'No Tags',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.quizData.categories!.isNotEmpty
+                        ? '${widget.quizData.categories?.join(', ')}'
+                        : 'No Tags',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Divider(),

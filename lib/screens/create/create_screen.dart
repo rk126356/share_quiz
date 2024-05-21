@@ -611,7 +611,7 @@ class _CreateScreenState extends State<CreateScreen> {
                       },
                     ),
                     TextField(
-                      maxLength: 30,
+                      maxLength: 50,
                       decoration: const InputDecoration(
                         icon: Icon(
                           CupertinoIcons.number,

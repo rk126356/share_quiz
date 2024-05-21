@@ -623,7 +623,7 @@ class _InsideTemplateScreenState extends State<InsideTemplateScreen> {
                     ),
                     TextField(
                       controller: quizTags,
-                      maxLength: 30,
+                      maxLength: 50,
                       decoration: const InputDecoration(
                         icon: Icon(
                           CupertinoIcons.tag_fill,
